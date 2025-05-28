@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 # Module: interface.py
-# Purpose: Main GUI window for the application
+# Purpose: Main GUI window with real functionality
 
 import os
 import sys
@@ -11,7 +11,14 @@ import tkinter as tk
 from tkinter import ttk, filedialog, messagebox
 import threading
 import time
-import random  # For demo only, remove in production
+import logging
+
+# Import các module thực tế
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..')))
+
+from network.connection import SSHConnection
+from files.manager import TestFileManager
+from storage.database import TestDatabase
 
 class ApplicationGUI:
     def __init__(self, root):
@@ -20,21 +27,32 @@ class ApplicationGUI:
         self.root.geometry("900x700")
         self.root.minsize(800, 600)
         
+        # Setup logging
+        logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
+        self.logger = logging.getLogger(__name__)
+        
+        # Initialize real modules
+        self.ssh_connection = SSHConnection()
+        self.file_manager = TestFileManager()
+        self.database = TestDatabase()
+        
         # Style configuration
         self.style = ttk.Style()
         self.style.configure("TButton", padding=6)
         self.style.configure("TLabel", padding=3)
         self.style.configure("TFrame", padding=5)
         
-        # Variables
-        self.lan_ip_var = tk.StringVar(value="192.168.88.1")
-        self.wan_ip_var = tk.StringVar()
-        self.username_var = tk.StringVar(value="testuser")
-        self.password_var = tk.StringVar()
-        self.config_path_var = tk.StringVar(value="/root/config")
-        self.result_path_var = tk.StringVar(value="/root/result")
+        # Variables - Load from database
+        self.lan_ip_var = tk.StringVar(value=self.database.get_setting("lan_ip", "192.168.88.1"))
+        self.wan_ip_var = tk.StringVar(value=self.database.get_setting("wan_ip", ""))
+        self.username_var = tk.StringVar(value=self.database.get_setting("username", "testuser"))
+        self.password_var = tk.StringVar()  # Never save password
+        self.config_path_var = tk.StringVar(value=self.database.get_setting("config_path", "/root/config"))
+        self.result_path_var = tk.StringVar(value=self.database.get_setting("result_path", "/root/result"))
         self.connection_status = tk.StringVar(value="Not Connected")
+        
         self.selected_files = []
+        self.file_data = {}  # Store parsed file data
         self.current_file_index = -1
         self.processing = False
         
@@ -43,8 +61,27 @@ class ApplicationGUI:
         self.create_notebook()
         self.create_status_bar()
         
-        # Load demo data for preview (remove in production)
-        self.load_demo_data()
+        # Load history from database
+        self.load_history()
+        
+        # Auto-save settings when changed
+        self.setup_auto_save()
+    
+    def setup_auto_save(self):
+        """Setup auto-save for settings when they change"""
+        def save_setting(var_name, var):
+            def callback(*args):
+                try:
+                    self.database.save_setting(var_name, var.get())
+                except:
+                    pass  # Ignore errors during auto-save
+            return callback
+        
+        self.lan_ip_var.trace('w', save_setting('lan_ip', self.lan_ip_var))
+        self.wan_ip_var.trace('w', save_setting('wan_ip', self.wan_ip_var))
+        self.username_var.trace('w', save_setting('username', self.username_var))
+        self.config_path_var.trace('w', save_setting('config_path', self.config_path_var))
+        self.result_path_var.trace('w', save_setting('result_path', self.result_path_var))
     
     def create_menu(self):
         """Create application menu bar"""
@@ -57,7 +94,7 @@ class ApplicationGUI:
         file_menu.add_separator()
         file_menu.add_command(label="Export Results...", command=self.export_results)
         file_menu.add_separator()
-        file_menu.add_command(label="Exit", command=self.root.quit)
+        file_menu.add_command(label="Exit", command=self.on_closing)
         menubar.add_cascade(label="File", menu=file_menu)
         
         # View menu
@@ -79,6 +116,9 @@ class ApplicationGUI:
         menubar.add_cascade(label="Help", menu=help_menu)
         
         self.root.config(menu=menubar)
+        
+        # Handle window closing
+        self.root.protocol("WM_DELETE_WINDOW", self.on_closing)
     
     def create_notebook(self):
         """Create the main notebook/tabs interface"""
@@ -249,14 +289,14 @@ class ApplicationGUI:
         filter_frame.pack(fill=tk.X, padx=10, pady=10)
         
         ttk.Label(filter_frame, text="Date:").pack(side=tk.LEFT, padx=5)
-        date_combo = ttk.Combobox(filter_frame, width=15, values=["All", "Today", "Last 7 Days", "Last 30 Days"])
-        date_combo.current(0)
-        date_combo.pack(side=tk.LEFT, padx=5)
+        self.date_combo = ttk.Combobox(filter_frame, width=15, values=["All", "Today", "Last 7 Days", "Last 30 Days"])
+        self.date_combo.current(0)
+        self.date_combo.pack(side=tk.LEFT, padx=5)
         
         ttk.Label(filter_frame, text="Status:").pack(side=tk.LEFT, padx=5)
-        status_combo = ttk.Combobox(filter_frame, width=15, values=["All", "Pass", "Fail", "Error"])
-        status_combo.current(0)
-        status_combo.pack(side=tk.LEFT, padx=5)
+        self.status_combo = ttk.Combobox(filter_frame, width=15, values=["All", "Pass", "Fail", "Error"])
+        self.status_combo.current(0)
+        self.status_combo.pack(side=tk.LEFT, padx=5)
         
         ttk.Button(filter_frame, text="Apply Filter", command=self.apply_history_filter).pack(side=tk.LEFT, padx=5)
         ttk.Button(filter_frame, text="Clear Filter", command=self.clear_history_filter).pack(side=tk.LEFT, padx=5)
@@ -300,6 +340,7 @@ class ApplicationGUI:
         
         ttk.Button(history_btn_frame, text="Export to CSV", command=self.export_history).pack(side=tk.LEFT, padx=5)
         ttk.Button(history_btn_frame, text="View Details", command=self.view_history_details).pack(side=tk.LEFT, padx=5)
+        ttk.Button(history_btn_frame, text="Refresh", command=self.load_history).pack(side=tk.LEFT, padx=5)
     
     def setup_logs_tab(self):
         """Setup the logs tab content"""
@@ -346,94 +387,68 @@ class ApplicationGUI:
         self.time_var.set(current_time)
         self.root.after(1000, self.update_clock)
     
-    # Event handlers and actions
-    
-    def load_config(self):
-        """Load configuration from file"""
-        self.log_message("Loading configuration...")
-        messagebox.showinfo("Info", "Configuration loaded")
-    
-    def save_config(self):
-        """Save configuration to file"""
-        self.log_message("Saving configuration...")
-        messagebox.showinfo("Info", "Configuration saved successfully")
-    
-    def export_results(self):
-        """Export test results to a file"""
-        filename = filedialog.asksaveasfilename(
-            defaultextension=".csv",
-            filetypes=[("CSV files", "*.csv"), ("All files", "*.*")]
-        )
-        
-        if filename:
-            self.log_message(f"Exporting results to {filename}...")
-            messagebox.showinfo("Export", f"Results exported to {filename}")
-    
-    def refresh_view(self):
-        """Refresh the current view"""
-        self.log_message("Refreshing view...")
-    
-    def clear_history(self):
-        """Clear history data"""
-        confirm = messagebox.askyesno("Confirm", "Are you sure you want to clear all history?")
-        if confirm:
-            for item in self.history_table.get_children():
-                self.history_table.delete(item)
-            self.log_message("History cleared")
+    # Event handlers and actions - REAL IMPLEMENTATIONS
     
     def test_connection(self):
-        """Test connection to the remote server"""
-        self.log_message("Testing connection to " + self.lan_ip_var.get() + "...")
-        
-        # Validate connection fields
+        """Real connection test using SSH module"""
         if not self.validate_connection_fields():
             return
         
-        # Update status
         self.connection_status.set("Connecting...")
         self.update_status_circle("yellow")
+        self.log_message("Testing connection to " + self.lan_ip_var.get() + "...")
         
         def _test_connection():
-            # Simulate connection (in production, use actual SSH connection)
-            time.sleep(2)
-            
-            # For demo: 80% chance of success
-            success = random.random() > 0.2
-            
-            if success:
-                self.root.after(0, lambda: self.connection_status.set("Connected"))
-                self.root.after(0, lambda: self.update_status_circle("green"))
-                self.root.after(0, lambda: self.log_message("Connection successful"))
-                self.root.after(0, lambda: messagebox.showinfo("Connection", "Connection successful!"))
-            else:
-                self.root.after(0, lambda: self.connection_status.set("Connection failed"))
+            try:
+                success = self.ssh_connection.connect(
+                    hostname=self.lan_ip_var.get(),
+                    username=self.username_var.get(),
+                    password=self.password_var.get(),
+                    timeout=10
+                )
+                
+                if success:
+                    # Log successful connection
+                    self.database.log_connection(
+                        self.lan_ip_var.get(), 
+                        "Connected", 
+                        "Connection test successful"
+                    )
+                    
+                    self.root.after(0, lambda: self.connection_status.set("Connected"))
+                    self.root.after(0, lambda: self.update_status_circle("green"))
+                    self.root.after(0, lambda: self.log_message("Connection successful"))
+                    self.root.after(0, lambda: messagebox.showinfo("Connection", "Connection successful!"))
+                else:
+                    # Log failed connection
+                    self.database.log_connection(
+                        self.lan_ip_var.get(), 
+                        "Failed", 
+                        "Authentication or network error"
+                    )
+                    
+                    self.root.after(0, lambda: self.connection_status.set("Connection failed"))
+                    self.root.after(0, lambda: self.update_status_circle("red"))
+                    self.root.after(0, lambda: self.log_message("Connection failed"))
+                    self.root.after(0, lambda: messagebox.showerror("Connection", "Connection failed. Check credentials."))
+                    
+            except Exception as e:
+                error_msg = f"Connection error: {str(e)}"
+                self.database.log_connection(
+                    self.lan_ip_var.get(), 
+                    "Error", 
+                    error_msg
+                )
+                
+                self.root.after(0, lambda: self.connection_status.set("Error"))
                 self.root.after(0, lambda: self.update_status_circle("red"))
-                self.root.after(0, lambda: self.log_message("Connection failed: Authentication error"))
-                self.root.after(0, lambda: messagebox.showerror("Connection", "Connection failed. Check credentials."))
+                self.root.after(0, lambda: self.log_message(error_msg))
+                self.root.after(0, lambda: messagebox.showerror("Error", error_msg))
         
-        # Run in a separate thread to avoid freezing the UI
         threading.Thread(target=_test_connection, daemon=True).start()
     
-    def check_remote_folders(self):
-        """Check if remote folders exist and are accessible"""
-        self.log_message("Checking remote folders...")
-        
-        if not self.validate_connection_fields():
-            return
-        
-        # For demo, just show success
-        messagebox.showinfo("Folders", f"Folders exist and are accessible:\n{self.config_path_var.get()}\n{self.result_path_var.get()}")
-    
-    def show_documentation(self):
-        """Show application documentation"""
-        messagebox.showinfo("Documentation", "Please refer to docs/user_guide.md for detailed documentation.")
-    
-    def show_about(self):
-        """Show about dialog"""
-        messagebox.showinfo("About", "Test Case Manager v1.0\n© 2025 juno-kyojin")
-    
     def select_files(self):
-        """Open file dialog to select JSON test files"""
+        """Select and validate JSON files using real file manager"""
         files = filedialog.askopenfilenames(
             title="Select JSON Test Files",
             filetypes=[("JSON files", "*.json"), ("All files", "*.*")]
@@ -445,42 +460,265 @@ class ApplicationGUI:
         # Clear existing selection
         self.clear_files()
         
-        # Store selected files
-        self.selected_files = list(files)
+        # Validate and add files
+        valid_files = []
+        invalid_files = []
         
-        # Parse and add files to the table
-        for file_path in self.selected_files:
+        for file_path in files:
             try:
-                # In production, use file_manager to parse the file
-                # For now, simulate parsing
-                file_name = os.path.basename(file_path)
-                file_size = os.path.getsize(file_path)
-                size_str = f"{file_size / 1024:.1f} KB" if file_size < 1024*1024 else f"{file_size / (1024*1024):.1f} MB"
+                is_valid, error_msg, data = self.file_manager.validate_json_file(file_path)
                 
-                # Try to load the file to count tests
-                try:
-                    with open(file_path, 'r') as f:
-                        data = json.load(f)
-                    test_count = len(data.get("test_cases", []))
-                except:
-                    test_count = "?"
-                
-                # Add to table
-                self.file_table.insert("", "end", values=(file_name, size_str, test_count, "Waiting", "", ""))
-                
+                if is_valid:
+                    valid_files.append(file_path)
+                    
+                    # Store file data
+                    file_name = os.path.basename(file_path)
+                    self.file_data[file_name] = {
+                        "path": file_path,
+                        "data": data,
+                        "impacts": self.file_manager.analyze_test_impacts(data)
+                    }
+                    
+                    # Add to table
+                    file_size = os.path.getsize(file_path)
+                    size_str = f"{file_size / 1024:.1f} KB" if file_size < 1024*1024 else f"{file_size / (1024*1024):.1f} MB"
+                    test_count = self.file_manager.get_test_case_count(data)
+                    
+                    self.file_table.insert("", "end", values=(file_name, size_str, test_count, "Waiting", "", ""))
+                    
+                else:
+                    invalid_files.append((os.path.basename(file_path), error_msg))
+                    self.log_message(f"Invalid file {os.path.basename(file_path)}: {error_msg}")
+                    
             except Exception as e:
-                self.log_message(f"Error loading file {file_path}: {str(e)}")
+                invalid_files.append((os.path.basename(file_path), str(e)))
+                self.log_message(f"Error processing {os.path.basename(file_path)}: {str(e)}")
         
-        self.log_message(f"Selected {len(self.selected_files)} files")
+        self.selected_files = valid_files
+        self.log_message(f"Selected {len(valid_files)} valid files")
+        
+        # Show errors for invalid files
+        if invalid_files:
+            error_msg = "The following files could not be loaded:\n\n"
+            for filename, error in invalid_files:
+                error_msg += f"• {filename}: {error}\n"
+            messagebox.showerror("Invalid Files", error_msg)
+        
+        # Show warnings for files that affect network
+        network_affecting_files = []
+        for file_name, file_info in self.file_data.items():
+            impacts = file_info["impacts"]
+            if impacts["affects_wan"] or impacts["affects_lan"]:
+                network_affecting_files.append(file_name)
+        
+        if network_affecting_files:
+            warning_msg = f"Warning: The following files may affect network connectivity:\n\n"
+            for filename in network_affecting_files:
+                warning_msg += f"• {filename}\n"
+            warning_msg += "\nConnection may be temporarily lost during testing."
+            messagebox.showwarning("Network Impact Warning", warning_msg)
     
-    def clear_files(self):
-        """Clear selected files"""
-        self.selected_files = []
-        for item in self.file_table.get_children():
-            self.file_table.delete(item)
+    def send_files(self):
+        """Send files using real SSH connection and file transfer"""
+        if not self.selected_files:
+            messagebox.showinfo("Info", "No files selected")
+            return
         
-        for item in self.detail_table.get_children():
-            self.detail_table.delete(item)
+        if not self.validate_connection_fields():
+            return
+        
+        # Confirm before sending
+        confirm = messagebox.askyesno(
+            "Confirm", 
+            f"Send {len(self.selected_files)} files? Files will be processed sequentially."
+        )
+        
+        if not confirm:
+            return
+        
+        # Disable buttons and start processing
+        self.send_button.configure(state=tk.DISABLED)
+        self.cancel_button.configure(state=tk.NORMAL)
+        self.processing = True
+        self.progress_var.set(0)
+        
+        threading.Thread(target=self.process_files_real, daemon=True).start()
+    
+    def process_files_real(self):
+        """Process files using real modules"""
+        start_time = time.time()
+        total_files = len(self.selected_files)
+        
+        try:
+            # 1. Establish connection
+            self.log_message("Establishing SSH connection...")
+            
+            if not self.ssh_connection.is_connected():
+                success = self.ssh_connection.connect(
+                    hostname=self.lan_ip_var.get(),
+                    username=self.username_var.get(),
+                    password=self.password_var.get()
+                )
+                
+                if not success:
+                    raise Exception("Failed to establish SSH connection")
+            
+            self.root.after(0, lambda: self.connection_status.set("Connected"))
+            self.root.after(0, lambda: self.update_status_circle("green"))
+            
+            # 2. Process each file
+            for i, file_path in enumerate(self.selected_files):
+                if not self.processing:
+                    break
+                
+                file_name = os.path.basename(file_path)
+                file_start_time = time.time()
+                self.log_message(f"Processing file {i+1}/{total_files}: {file_name}")
+                
+                # Update progress
+                progress = int((i / total_files) * 100)
+                self.root.after(0, lambda p=progress: self.progress_var.set(p))
+                
+                # Update table status
+                self.update_file_status(i, "Sending", "", "")
+                
+                try:
+                    # 3. Upload file
+                    remote_path = os.path.join(self.config_path_var.get(), file_name)
+                    upload_success = self.ssh_connection.upload_file(file_path, remote_path)
+                    
+                    if not upload_success:
+                        raise Exception("File upload failed")
+                    
+                    self.log_message(f"File {file_name} uploaded successfully")
+                    self.update_file_status(i, "Testing", "", "")
+                    
+                    # 4. Wait for result
+                    result_filename = f"result_{file_name}"
+                    result_remote_path = os.path.join(self.result_path_var.get(), result_filename)
+                    
+                    # Wait for result file (timeout: 60 seconds)
+                    timeout = 60
+                    start_wait = time.time()
+                    result_found = False
+                    
+                    self.log_message(f"Waiting for result file: {result_filename}")
+                    
+                    while time.time() - start_wait < timeout and self.processing:
+                        if self.ssh_connection.file_exists(result_remote_path):
+                            result_found = True
+                            break
+                        time.sleep(5)  # Check every 5 seconds
+                    
+                    if not result_found:
+                        raise Exception("Timeout waiting for test result")
+                    
+                    # 5. Download result
+                    local_result_dir = "data/temp/results"
+                    os.makedirs(local_result_dir, exist_ok=True)
+                    local_result_path = os.path.join(local_result_dir, result_filename)
+                    
+                    download_success = self.ssh_connection.download_file(result_remote_path, local_result_path)
+                    
+                    if not download_success:
+                        raise Exception("Failed to download result file")
+                    
+                    self.log_message(f"Result file {result_filename} downloaded successfully")
+                    
+                    # 6. Parse result
+                    try:
+                        with open(local_result_path, 'r') as f:
+                            result_data = json.load(f)
+                    except Exception as e:
+                        raise Exception(f"Failed to parse result file: {str(e)}")
+                    
+                    # Determine overall result
+                    overall_result = self.determine_overall_result(result_data)
+                    execution_time = time.time() - file_start_time
+                    
+                    # Update table
+                    self.update_file_status(i, "Completed", overall_result, f"{execution_time:.1f}s")
+                    
+                    # 7. Save to database
+                    file_info = self.file_data[file_name]
+                    impacts = file_info["impacts"]
+                    test_count = self.file_manager.get_test_case_count(file_info["data"])
+                    
+                    file_id = self.database.save_test_file_result(
+                        file_name=file_name,
+                        file_size=os.path.getsize(file_path),
+                        test_count=test_count,
+                        send_status="Completed",
+                        overall_result=overall_result,
+                        affects_wan=impacts["affects_wan"],
+                        affects_lan=impacts["affects_lan"],
+                        execution_time=execution_time,
+                        target_ip=self.lan_ip_var.get(),
+                        target_username=self.username_var.get()
+                    )
+                    
+                    # Save individual test results
+                    test_results = result_data.get("test_results", [])
+                    if test_results and file_id > 0:
+                        self.database.save_test_case_results(file_id, test_results)
+                    
+                    # Update detail table with results if this file is selected
+                    self.update_detail_table_with_results(i, result_data)
+                    
+                    self.log_message(f"File {file_name} processed successfully: {overall_result}")
+                    
+                except Exception as e:
+                    error_msg = f"Error processing {file_name}: {str(e)}"
+                    self.log_message(error_msg)
+                    self.update_file_status(i, "Error", "Failed", str(e))
+                    
+                    # Save error to database
+                    try:
+                        file_info = self.file_data[file_name]
+                        impacts = file_info["impacts"]
+                        test_count = self.file_manager.get_test_case_count(file_info["data"])
+                        
+                        self.database.save_test_file_result(
+                            file_name=file_name,
+                            file_size=os.path.getsize(file_path),
+                            test_count=test_count,
+                            send_status="Error",
+                            overall_result="Failed",
+                            affects_wan=impacts["affects_wan"],
+                            affects_lan=impacts["affects_lan"],
+                            execution_time=time.time() - file_start_time,
+                            target_ip=self.lan_ip_var.get(),
+                            target_username=self.username_var.get()
+                        )
+                    except Exception as db_error:
+                        self.log_message(f"Failed to save error to database: {str(db_error)}")
+            
+            # All files processed
+            if self.processing:
+                total_time = time.time() - start_time
+                self.log_message(f"All {total_files} files processed in {total_time:.1f} seconds")
+                self.root.after(0, lambda: messagebox.showinfo("Complete", f"All {total_files} files processed successfully"))
+            
+        except Exception as e:
+            error_msg = f"Processing error: {str(e)}"
+            self.log_message(error_msg)
+            self.root.after(0, lambda: messagebox.showerror("Error", error_msg))
+        
+        finally:
+            # Reset UI
+            self.processing = False
+            self.root.after(0, lambda: self.send_button.configure(state=tk.NORMAL))
+            self.root.after(0, lambda: self.cancel_button.configure(state=tk.DISABLED))
+            self.root.after(0, lambda: self.progress_var.set(100 if self.processing else 0))
+            
+            # Reload history
+            self.root.after(0, self.load_history)
+    
+    def cancel_processing(self):
+        """Cancel the file processing"""
+        if self.processing:
+            self.processing = False
+            self.log_message("Processing cancelled by user")
     
     def on_file_selected(self, event):
         """Handle file selection to show test case details"""
@@ -496,16 +734,15 @@ class ApplicationGUI:
             return
         
         file_path = self.selected_files[item_idx]
+        file_name = os.path.basename(file_path)
         
         # Clear detail table
         for item in self.detail_table.get_children():
             self.detail_table.delete(item)
         
         # Load file and populate detail table
-        try:
-            with open(file_path, 'r') as f:
-                data = json.load(f)
-            
+        if file_name in self.file_data:
+            data = self.file_data[file_name]["data"]
             test_cases = data.get("test_cases", [])
             
             for i, test_case in enumerate(test_cases):
@@ -516,14 +753,36 @@ class ApplicationGUI:
                 params = test_case.get("params", {})
                 params_str = self.format_params(params)
                 
-                # For demo, status and details are empty
+                # Status and details will be updated when results are available
                 status = "-"
                 details = "-"
                 
                 self.detail_table.insert("", "end", values=(service, action, params_str, status, details))
-            
-        except Exception as e:
-            self.log_message(f"Error loading test details: {str(e)}")
+    
+    def update_detail_table_with_results(self, file_index, result_data):
+        """Update detail table with test results if the file is currently selected"""
+        selection = self.file_table.selection()
+        if not selection:
+            return
+        
+        selected_index = self.file_table.index(selection[0])
+        if selected_index != file_index:
+            return  # Different file is selected
+        
+        test_results = result_data.get("test_results", [])
+        detail_items = self.detail_table.get_children()
+        
+        # Update each test case result
+        for i, result in enumerate(test_results):
+            if i < len(detail_items):
+                item_id = detail_items[i]
+                current_values = list(self.detail_table.item(item_id)["values"])
+                
+                # Update status and details
+                current_values[3] = result.get("status", "Unknown")  # Status column
+                current_values[4] = result.get("details", "No details")  # Details column
+                
+                self.root.after(0, lambda id=item_id, vals=current_values: self.detail_table.item(id, values=tuple(vals)))
     
     def format_params(self, params):
         """Format parameters as a readable string"""
@@ -541,252 +800,165 @@ class ApplicationGUI:
         
         return ", ".join(parts)
     
-    def send_files(self):
-        """Send selected files to the remote server"""
-        if not self.selected_files:
-            messagebox.showinfo("Info", "No files selected")
-            return
+    def determine_overall_result(self, result_data):
+        """Determine overall result from test result data"""
+        if "overall_status" in result_data:
+            status = result_data["overall_status"].lower()
+            return "Pass" if status == "pass" else "Fail" if status == "fail" else "Unknown"
         
+        test_results = result_data.get("test_results", [])
+        
+        if not test_results:
+            return "Unknown"
+        
+        passed = sum(1 for r in test_results if r.get("status", "").lower() == "pass")
+        total = len(test_results)
+        
+        if passed == total:
+            return "Pass"
+        elif passed == 0:
+            return "Fail"
+        else:
+            return f"Partial ({passed}/{total})"
+    
+    def update_file_status(self, file_index, status, result="", time_str=""):
+        """Update file status in the table"""
+        try:
+            items = self.file_table.get_children()
+            if file_index < len(items):
+                item_id = items[file_index]
+                current_values = list(self.file_table.item(item_id)["values"])
+                current_values[3] = status  # Status column
+                if result:
+                    current_values[4] = result  # Result column
+                if time_str:
+                    current_values[5] = time_str  # Time column
+                
+                self.root.after(0, lambda: self.file_table.item(item_id, values=tuple(current_values)))
+        except Exception as e:
+            self.logger.error(f"Error updating file status: {e}")
+    
+    def save_config(self):
+        """Save configuration using database"""
+        try:
+            self.database.save_setting("lan_ip", self.lan_ip_var.get())
+            self.database.save_setting("wan_ip", self.wan_ip_var.get())
+            self.database.save_setting("username", self.username_var.get())
+            self.database.save_setting("config_path", self.config_path_var.get())
+            self.database.save_setting("result_path", self.result_path_var.get())
+            
+            self.log_message("Configuration saved successfully")
+            messagebox.showinfo("Success", "Configuration saved successfully")
+            
+        except Exception as e:
+            error_msg = f"Failed to save configuration: {str(e)}"
+            self.log_message(error_msg)
+            messagebox.showerror("Error", error_msg)
+    
+    def load_config(self):
+        """Load configuration from database"""
+        try:
+            self.lan_ip_var.set(self.database.get_setting("lan_ip", "192.168.88.1"))
+            self.wan_ip_var.set(self.database.get_setting("wan_ip", ""))
+            self.username_var.set(self.database.get_setting("username", "testuser"))
+            self.config_path_var.set(self.database.get_setting("config_path", "/root/config"))
+            self.result_path_var.set(self.database.get_setting("result_path", "/root/result"))
+            
+            self.log_message("Configuration loaded successfully")
+            
+        except Exception as e:
+            error_msg = f"Failed to load configuration: {str(e)}"
+            self.log_message(error_msg)
+            messagebox.showerror("Error", error_msg)
+    
+    def load_history(self):
+        """Load history from database"""
+        try:
+            # Clear existing history
+            for item in self.history_table.get_children():
+                self.history_table.delete(item)
+            
+            # Load recent history
+            history_data = self.database.get_recent_history(100)
+            
+            for record in history_data:
+                timestamp = record["timestamp"]
+                if " " in timestamp:
+                    date, time_str = timestamp.split(" ", 1)
+                else:
+                    date = timestamp
+                    time_str = ""
+                
+                details = f"Execution time: {record['execution_time']:.1f}s" if record["execution_time"] else ""
+                if record["affects_wan"] or record["affects_lan"]:
+                    details += " (Network affecting)"
+                
+                self.history_table.insert("", "end", values=(
+                    date,
+                    time_str,
+                    record["file_name"],
+                    record["test_count"],
+                    record["overall_result"] or "Unknown",
+                    details
+                ))
+                
+        except Exception as e:
+            self.log_message(f"Error loading history: {str(e)}")
+    
+    def check_remote_folders(self):
+        """Check if remote folders exist and are accessible"""
         if not self.validate_connection_fields():
             return
         
-        # Confirm before sending
-        confirm = messagebox.askyesno(
-            "Confirm", 
-            f"Send {len(self.selected_files)} files? Files will be processed sequentially."
-        )
+        self.log_message("Checking remote folders...")
         
-        if not confirm:
-            return
-        
-        # Disable buttons and update UI
-        self.send_button.configure(state=tk.DISABLED)
-        self.cancel_button.configure(state=tk.NORMAL)
-        self.processing = True
-        self.current_file_index = 0
-        self.progress_var.set(0)
-        
-        # Start processing thread
-        threading.Thread(target=self.process_files, daemon=True).start()
-    
-    def cancel_processing(self):
-        """Cancel the file processing"""
-        if self.processing:
-            self.processing = False
-            self.log_message("Processing cancelled by user")
-            self.send_button.configure(state=tk.NORMAL)
-            self.cancel_button.configure(state=tk.DISABLED)
-    
-    def process_files(self):
-        """Process files sequentially"""
-        # Test connection first
-        self.log_message("Testing connection...")
-        self.root.after(0, lambda: self.connection_status.set("Connecting..."))
-        self.root.after(0, lambda: self.update_status_circle("yellow"))
-        
-        # Simulate connection
-        time.sleep(1)
-        
-        # For demo, assume connection succeeds
-        self.root.after(0, lambda: self.connection_status.set("Connected"))
-        self.root.after(0, lambda: self.update_status_circle("green"))
-        
-        # Process each file
-        total_files = len(self.selected_files)
-        
-        for i, file_path in enumerate(self.selected_files):
-            if not self.processing:
-                break
-                
-            file_name = os.path.basename(file_path)
-            self.log_message(f"Processing file {i+1}/{total_files}: {file_name}")
-            
-            # Update progress bar
-            progress = int((i / total_files) * 100)
-            self.root.after(0, lambda p=progress: self.progress_var.set(p))
-            
-            # Update file status in the table
-            for item_id in self.file_table.get_children():
-                if self.file_table.index(item_id) == i:
-                    self.root.after(0, lambda id=item_id: self.file_table.item(
-                        id, values=(
-                            self.file_table.item(id)["values"][0],  # filename
-                            self.file_table.item(id)["values"][1],  # size
-                            self.file_table.item(id)["values"][2],  # tests
-                            "Sending",  # status
-                            "",  # result
-                            ""   # time
-                        )
-                    ))
-            
-            # 1. Simulate sending file (1-2 seconds)
-            time.sleep(1 + random.random())
-            
-            if not self.processing:
-                break
-            
-            # Update status to "Testing"
-            for item_id in self.file_table.get_children():
-                if self.file_table.index(item_id) == i:
-                    self.root.after(0, lambda id=item_id: self.file_table.item(
-                        id, values=(
-                            self.file_table.item(id)["values"][0],  # filename
-                            self.file_table.item(id)["values"][1],  # size
-                            self.file_table.item(id)["values"][2],  # tests
-                            "Testing",  # status
-                            "",  # result
-                            ""   # time
-                        )
-                    ))
-            
-            # 2. Simulate test execution (3-5 seconds)
-            time.sleep(3 + 2 * random.random())
-            
-            if not self.processing:
-                break
-            
-            # 3. Simulate result retrieval
-            # For demo, randomly generate result
-            result = "Pass" if random.random() > 0.3 else "Fail"
-            elapsed = f"{4 + random.random():.1f}s"
-            
-            # Update file status in the table with result
-            for item_id in self.file_table.get_children():
-                if self.file_table.index(item_id) == i:
-                    self.root.after(0, lambda id=item_id, res=result, tm=elapsed: self.file_table.item(
-                        id, values=(
-                            self.file_table.item(id)["values"][0],  # filename
-                            self.file_table.item(id)["values"][1],  # size
-                            self.file_table.item(id)["values"][2],  # tests
-                            "Completed",  # status
-                            res,  # result
-                            tm    # time
-                        )
-                    ))
-            
-            # 4. Update detail table with results if this file is selected
-            selection = self.file_table.selection()
-            if selection and self.file_table.index(selection[0]) == i:
-                try:
-                    with open(file_path, 'r') as f:
-                        data = json.load(f)
-                    
-                    test_cases = data.get("test_cases", [])
-                    
-                    # For each test case in the detail table, update status and details
-                    for j, test_case in enumerate(test_cases):
-                        detail_items = self.detail_table.get_children()
-                        if j < len(detail_items):
-                            item_id = detail_items[j]
-                            
-                            # Generate random result for each test case
-                            test_result = "Pass" if random.random() > 0.3 else "Fail"
-                            if test_result == "Pass":
-                                details = "Test completed successfully"
-                            else:
-                                details = "Test failed: Error code " + str(random.randint(1000, 9999))
-                            
-                            self.root.after(0, lambda id=item_id, res=test_result, det=details: self.detail_table.item(
-                                id, values=(
-                                    self.detail_table.item(id)["values"][0],  # service
-                                    self.detail_table.item(id)["values"][1],  # action
-                                    self.detail_table.item(id)["values"][2],  # params
-                                    res,   # status
-                                    det    # details
-                                )
-                            ))
-                except Exception as e:
-                    self.log_message(f"Error updating test results: {str(e)}")
-            
-            # 5. Add to history table
-            timestamp = time.strftime("%Y-%m-%d %H:%M:%S")
-            date, time_str = timestamp.split(" ")
-            
-            with open(file_path, 'r') as f:
-                data = json.load(f)
-            
-            test_count = len(data.get("test_cases", []))
-            
-            self.root.after(0, lambda fn=file_name, d=date, t=time_str, tc=test_count, r=result: self.history_table.insert(
-                "", 0,  # Insert at the top
-                values=(d, t, fn, tc, r, "Tests completed with " + r.lower())
-            ))
-            
-            # Log result
-            self.log_message(f"File {file_name} processed: {result}")
-        
-        # All files processed or cancelled
-        if self.processing:
-            self.log_message(f"All {total_files} files processed")
-            self.root.after(0, lambda: messagebox.showinfo("Complete", f"All {total_files} files processed"))
-        else:
-            self.log_message("Processing stopped. Some files may not have been processed.")
-            
-        # Reset UI
-        self.processing = False
-        self.root.after(0, lambda: self.send_button.configure(state=tk.NORMAL))
-        self.root.after(0, lambda: self.cancel_button.configure(state=tk.DISABLED))
-        self.root.after(0, lambda: self.progress_var.set(100))
-    
-    def apply_history_filter(self):
-        """Apply filter to history table"""
-        self.log_message("Filtering history...")
-        # In a real application, this would query the database
-    
-    def clear_history_filter(self):
-        """Clear history filters"""
-        self.log_message("Clearing history filters...")
-        # In a real application, this would reset the query
-    
-    def export_history(self):
-        """Export history data to CSV"""
-        filename = filedialog.asksaveasfilename(
-            defaultextension=".csv",
-            filetypes=[("CSV files", "*.csv"), ("All files", "*.*")]
-        )
-        
-        if filename:
-            self.log_message(f"Exporting history to {filename}...")
-            messagebox.showinfo("Export", f"History exported to {filename}")
-    
-    def view_history_details(self):
-        """View details of a selected history item"""
-        selection = self.history_table.selection()
-        if selection:
-            item_id = selection[0]
-            filename = self.history_table.item(item_id)["values"][2]
-            messagebox.showinfo("Details", f"Details for {filename}")
-    
-    def clear_logs(self):
-        """Clear the log text area"""
-        self.log_text.delete("1.0", tk.END)
-    
-    def export_logs(self):
-        """Export logs to a text file"""
-        filename = filedialog.asksaveasfilename(
-            defaultextension=".log",
-            filetypes=[("Log files", "*.log"), ("Text files", "*.txt"), ("All files", "*.*")]
-        )
-        
-        if filename:
+        def _check_folders():
             try:
-                with open(filename, 'w') as f:
-                    f.write(self.log_text.get("1.0", tk.END))
-                messagebox.showinfo("Export", f"Logs exported to {filename}")
+                if not self.ssh_connection.is_connected():
+                    success = self.ssh_connection.connect(
+                        hostname=self.lan_ip_var.get(),
+                        username=self.username_var.get(),
+                        password=self.password_var.get()
+                    )
+                    if not success:
+                        raise Exception("Failed to connect")
+                
+                # Check config folder
+                config_path = self.config_path_var.get()
+                success, stdout, stderr = self.ssh_connection.execute_command(f"ls -ld {config_path}")
+                
+                if not success:
+                    raise Exception(f"Config folder not accessible: {stderr}")
+                
+                # Check result folder
+                result_path = self.result_path_var.get()
+                success, stdout, stderr = self.ssh_connection.execute_command(f"ls -ld {result_path}")
+                
+                if not success:
+                    raise Exception(f"Result folder not accessible: {stderr}")
+                
+                # Both folders accessible
+                message = f"Both folders are accessible:\n• {config_path}\n• {result_path}"
+                self.root.after(0, lambda: messagebox.showinfo("Folder Check", message))
+                self.root.after(0, lambda: self.log_message("Remote folders check successful"))
+                
             except Exception as e:
-                messagebox.showerror("Error", f"Failed to export logs: {str(e)}")
-    
-    def log_message(self, message):
-        """Add a message to the log with timestamp"""
-        timestamp = time.strftime("%Y-%m-%d %H:%M:%S")
-        log_entry = f"[{timestamp}] {message}\n"
+                error_msg = f"Folder check failed: {str(e)}"
+                self.root.after(0, lambda: messagebox.showerror("Folder Check", error_msg))
+                self.root.after(0, lambda: self.log_message(error_msg))
         
-        self.log_text.insert(tk.END, log_entry)
-        self.log_text.see(tk.END)  # Scroll to the bottom
+        threading.Thread(target=_check_folders, daemon=True).start()
     
-    def update_status_circle(self, color):
-        """Update the connection status indicator color"""
-        self.status_canvas.itemconfig(self.status_circle, fill=color)
+    # Remaining methods stay the same as demo version
+    def clear_files(self):
+        """Clear selected files"""
+        self.selected_files = []
+        self.file_data = {}
+        for item in self.file_table.get_children():
+            self.file_table.delete(item)
+        
+        for item in self.detail_table.get_children():
+            self.detail_table.delete(item)
     
     def validate_connection_fields(self):
         """Validate connection fields"""
@@ -812,61 +984,85 @@ class ApplicationGUI:
         
         return True
     
-    # Demo data for preview
-    def load_demo_data(self):
-        """Load demo data for preview"""
-        # Add some demo files to the file table
-        demo_files = [
-            ("test_ping.json", "1.2 KB", "3", "Completed", "Pass", "4.5s"),
-            ("test_wan.json", "0.8 KB", "2", "Completed", "Fail", "3.2s"),
-            ("test_lan.json", "1.0 KB", "1", "Waiting", "", ""),
-        ]
+    def update_status_circle(self, color):
+        """Update connection status circle color"""
+        self.status_canvas.itemconfig(self.status_circle, fill=color)
+    
+    def log_message(self, message):
+        """Add a message to the log with timestamp"""
+        timestamp = time.strftime("%Y-%m-%d %H:%M:%S")
+        log_entry = f"[{timestamp}] {message}\n"
         
-        for file_data in demo_files:
-            self.file_table.insert("", "end", values=file_data)
-        
-        # Add demo test cases to the detail table
-        demo_test_cases = [
-            ("ping", "-", "host1=youtube.com, host2=google.com", "Pass", "All hosts reachable"),
-            ("wan", "create", "interface1={type=pppoe, username=user1, password=pass1}", "Fail", "Authentication failed"),
-            ("lan", "create", "interface1={interface=lan1, ip=192.168.1.1}", "-", "-"),
-        ]
-        
-        for test_case in demo_test_cases:
-            self.detail_table.insert("", "end", values=test_case)
-        
-        # Add demo history entries
-        demo_history = [
-            ("2025-05-26", "09:55", "test_ping.json", "3", "Pass", "All tests passed successfully"),
-            ("2025-05-26", "09:30", "test_wan.json", "2", "Fail", "1 test failed: WAN authentication"),
-            ("2025-05-25", "15:22", "test_firewall.json", "5", "Pass", "All tests passed successfully"),
-            ("2025-05-24", "11:15", "test_dhcp.json", "2", "Pass", "All tests passed successfully"),
-            ("2025-05-24", "10:05", "test_dns.json", "3", "Fail", "2 tests failed: DNS resolution"),
-        ]
-        
-        for history_entry in demo_history:
-            self.history_table.insert("", "end", values=history_entry)
-        
-        # Add some demo logs
-        demo_logs = [
-            "Application started",
-            "Configuration loaded from config/settings.ini",
-            "Testing connection to 192.168.88.1...",
-            "Connection successful",
-            "Selected 3 files",
-            "Processing file 1/3: test_ping.json",
-            "File test_ping.json processed: Pass",
-            "Processing file 2/3: test_wan.json",
-            "File test_wan.json processed: Fail",
-            "All 3 files processed"
-        ]
-        
-        for log_entry in demo_logs:
-            self.log_message(log_entry)
-        
-        # Set connection status
-        self.connection_status.set("Connected")
-        self.update_status_circle("green")
+        self.log_text.insert(tk.END, log_entry)
+        self.log_text.see(tk.END)  # Scroll to the bottom
+    
+    def on_closing(self):
+        """Handle application closing"""
+        if self.processing:
+            if messagebox.askyesno("Confirm Exit", "Processing is in progress. Are you sure you want to exit?"):
+                self.processing = False
+                self.ssh_connection.disconnect()
+                self.root.destroy()
+        else:
+            self.ssh_connection.disconnect()
+            self.root.destroy()
+    
+    # Placeholder methods (same as demo)
+    def export_results(self):
+        filename = filedialog.asksaveasfilename(defaultextension=".csv", filetypes=[("CSV files", "*.csv")])
+        if filename:
+            self.log_message(f"Exporting results to {filename}...")
+            messagebox.showinfo("Export", f"Results exported to {filename}")
+    
+    def refresh_view(self):
+        self.load_history()
+        self.log_message("View refreshed")
+    
+    def clear_history(self):
+        confirm = messagebox.askyesno("Confirm", "Are you sure you want to clear all history?")
+        if confirm:
+            for item in self.history_table.get_children():
+                self.history_table.delete(item)
+            self.log_message("History cleared from view")
+    
+    def apply_history_filter(self):
+        self.log_message("Filtering history...")
+    
+    def clear_history_filter(self):
+        self.load_history()
+        self.log_message("History filter cleared")
+    
+    def export_history(self):
+        filename = filedialog.asksaveasfilename(defaultextension=".csv", filetypes=[("CSV files", "*.csv")])
+        if filename:
+            self.log_message(f"Exporting history to {filename}...")
+            messagebox.showinfo("Export", f"History exported to {filename}")
+    
+    def view_history_details(self):
+        selection = self.history_table.selection()
+        if selection:
+            item_id = selection[0]
+            filename = self.history_table.item(item_id)["values"][2]
+            messagebox.showinfo("Details", f"Details for {filename}")
+    
+    def clear_logs(self):
+        self.log_text.delete("1.0", tk.END)
+    
+    def export_logs(self):
+        filename = filedialog.asksaveasfilename(defaultextension=".log", filetypes=[("Log files", "*.log")])
+        if filename:
+            try:
+                with open(filename, 'w') as f:
+                    f.write(self.log_text.get("1.0", tk.END))
+                messagebox.showinfo("Export", f"Logs exported to {filename}")
+            except Exception as e:
+                messagebox.showerror("Error", f"Failed to export logs: {str(e)}")
+    
+    def show_documentation(self):
+        messagebox.showinfo("Documentation", "Please refer to docs/user_guide.md for detailed documentation.")
+    
+    def show_about(self):
+        messagebox.showinfo("About", "Test Case Manager v1.0\n© 2025 juno-kyojin\n\nWith real SSH connectivity and database storage.")
 
 
 def main():
