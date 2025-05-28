@@ -1,0 +1,36 @@
+{
+    "test_cases": [
+        {
+            "service" : "wan",
+            "action" : "create",
+            "params":{
+                "name": "wan1",
+                "protocol": "ipv4",
+                "gateway_type": "route",
+                "vlan_type": "",
+                "vlan_id": -1,
+                "mtu": 1492,
+                "nat": true,
+                "link_mode": "ipoe",
+                "pppoe_username": "",
+                "pppoe_password": "",
+                "ipv4_alloc": "dhcp",
+                "ipv4_ip": "192.168.1.100",
+                "ipv4_mask": "255.255.255.0",
+                "ipv4_gw": "192.168.1.1",
+                "ipv4_dns": [
+                    "8.8.8.8",
+                    "8.8.4.4"
+                ],
+                "ipv6_alloc": "",
+                "ipv6_gw": "",
+                "ipv6_dns": [],
+                "ipv6_prefix_mode": "",
+                "ipv6_prefix_value": "",
+                "ipv6_prefix_primaryTime": "",
+                "ipv6_prefix_leaseTime": ""
+            }
+        }
+    ]
+
+}

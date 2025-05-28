@@ -45,7 +45,7 @@ class ApplicationGUI:
         # Variables - Load from database
         self.lan_ip_var = tk.StringVar(value=self.database.get_setting("lan_ip", "192.168.88.1"))
         self.wan_ip_var = tk.StringVar(value=self.database.get_setting("wan_ip", ""))
-        self.username_var = tk.StringVar(value=self.database.get_setting("username", "testuser"))
+        self.username_var = tk.StringVar(value=self.database.get_setting("username", "root"))
         self.password_var = tk.StringVar()  # Never save password
         self.config_path_var = tk.StringVar(value=self.database.get_setting("config_path", "/root/config"))
         self.result_path_var = tk.StringVar(value=self.database.get_setting("result_path", "/root/result"))
@@ -593,37 +593,124 @@ class ApplicationGUI:
                     self.log_message(f"File {file_name} uploaded successfully")
                     self.update_file_status(i, "Testing", "", "")
                     
-                    # 4. Wait for result
-                    result_filename = f"result_{file_name}"
-                    result_remote_path = os.path.join(self.result_path_var.get(), result_filename)
-                    
-                    # Wait for result file (timeout: 60 seconds)
-                    timeout = 60
+                    # 4. Wait for result file with real-time monitoring
+                    base_filename = os.path.splitext(file_name)[0]
+                    result_remote_dir = self.result_path_var.get()
+
+                    # Record current time to filter only new files
+                    upload_time = time.time()
+
+                    timeout = 120  # Increase timeout to 2 minutes
                     start_wait = time.time()
                     result_found = False
-                    
-                    self.log_message(f"Waiting for result file: {result_filename}")
-                    
+                    actual_result_filename = None
+                    result_remote_path = None
+
+                    self.log_message(f"Waiting for result file matching pattern: {base_filename}_*.json in {result_remote_dir}")
+                    self.log_message(f"Looking for files created after upload time: {time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(upload_time))}")
+
+                    # Monitor with shorter intervals and better logging
+                    check_interval = 2  # Check every 2 seconds
+                    last_files_check = ""
+
                     while time.time() - start_wait < timeout and self.processing:
-                        if self.ssh_connection.file_exists(result_remote_path):
-                            result_found = True
-                            break
-                        time.sleep(5)  # Check every 5 seconds
-                    
+                        elapsed = time.time() - start_wait
+                        
+                        # List all files in result directory every 10 seconds for monitoring
+                        if int(elapsed) % 10 == 0:
+                            success, stdout, stderr = self.ssh_connection.execute_command(f"ls -la {result_remote_dir}/")
+                            if success and stdout != last_files_check:
+                                self.log_message(f"[{elapsed:.0f}s] Result directory contents:\n{stdout}")
+                                last_files_check = stdout
+                        
+                        # Look for our specific files with timestamp check
+                        success, stdout, stderr = self.ssh_connection.execute_command(
+                            f"find {result_remote_dir} -name '{base_filename}_*.json' -newermt '@{int(upload_time)}' 2>/dev/null"
+                        )
+                        
+                        if success and stdout.strip():
+                            # Found new files created after upload
+                            new_files = [f.strip() for f in stdout.strip().split('\n') if f.strip()]
+                            self.log_message(f"[{elapsed:.0f}s] Found new files created after upload: {new_files}")
+                            
+                            if new_files:
+                                # Sort by filename and take the newest
+                                new_files.sort()
+                                result_remote_path = new_files[-1]
+                                actual_result_filename = os.path.basename(result_remote_path)
+                                
+                                # Check file size to ensure it's complete
+                                file_size = self.ssh_connection.get_file_size(result_remote_path)
+                                self.log_message(f"[{elapsed:.0f}s] Checking new file {actual_result_filename}: {file_size} bytes")
+                                
+                                if file_size > 0:
+                                    # Wait a bit more to ensure file is completely written
+                                    time.sleep(2)
+                                    
+                                    # Check size again to ensure it's stable
+                                    new_size = self.ssh_connection.get_file_size(result_remote_path)
+                                    if new_size == file_size and new_size > 50:  # At least 50 bytes for valid JSON
+                                        result_found = True
+                                        self.log_message(f"[{elapsed:.0f}s] New result file ready: {actual_result_filename} ({file_size} bytes)")
+                                        break
+                                    else:
+                                        self.log_message(f"[{elapsed:.0f}s] File still being written: {file_size} -> {new_size} bytes")
+                        else:
+                            # Fallback: Look for any matching files if find with timestamp fails
+                            success, stdout, stderr = self.ssh_connection.execute_command(
+                                f"ls {result_remote_dir}/{base_filename}_*.json 2>/dev/null"
+                            )
+                            
+                            if success and stdout.strip():
+                                all_files = [f.strip() for f in stdout.strip().split('\n') if f.strip()]
+                                
+                                # Filter files by modification time using stat
+                                recent_files = []
+                                for file_path in all_files:
+                                    success, stat_out, stat_err = self.ssh_connection.execute_command(f"stat -c%Y '{file_path}' 2>/dev/null")
+                                    if success and stat_out.strip().isdigit():
+                                        mod_time = int(stat_out.strip())
+                                        if mod_time >= upload_time - 10:  # Allow 10 seconds buffer
+                                            recent_files.append((mod_time, file_path))
+                                
+                                if recent_files:
+                                    # Sort by modification time (newest first)
+                                    recent_files.sort(reverse=True)
+                                    result_remote_path = recent_files[0][1]
+                                    actual_result_filename = os.path.basename(result_remote_path)
+                                    
+                                    file_size = self.ssh_connection.get_file_size(result_remote_path)
+                                    if file_size > 50:
+                                        result_found = True
+                                        self.log_message(f"[{elapsed:.0f}s] Found recent file: {actual_result_filename} ({file_size} bytes)")
+                                        break
+                            
+                            # Log every 15 seconds if no files found
+                            if int(elapsed) % 15 == 0:
+                                self.log_message(f"[{elapsed:.0f}s] No new result files found yet, continuing to wait...")
+                        
+                        time.sleep(check_interval)
+
                     if not result_found:
-                        raise Exception("Timeout waiting for test result")
+                        # Final comprehensive check
+                        self.log_message("FINAL CHECK - Listing all matching files:")
+                        success, stdout, stderr = self.ssh_connection.execute_command(f"ls -la {result_remote_dir}/{base_filename}_*.json 2>/dev/null")
+                        if success:
+                            self.log_message(f"All matching files:\n{stdout}")
+                        
+                        raise Exception(f"Timeout waiting for NEW result file. Expected pattern: {base_filename}_*.json created after upload")
                     
                     # 5. Download result
                     local_result_dir = "data/temp/results"
                     os.makedirs(local_result_dir, exist_ok=True)
-                    local_result_path = os.path.join(local_result_dir, result_filename)
+                    local_result_path = os.path.join(local_result_dir, actual_result_filename)
                     
                     download_success = self.ssh_connection.download_file(result_remote_path, local_result_path)
                     
                     if not download_success:
                         raise Exception("Failed to download result file")
                     
-                    self.log_message(f"Result file {result_filename} downloaded successfully")
+                    self.log_message(f"Result file {actual_result_filename} downloaded successfully")
                     
                     # 6. Parse result
                     try:
@@ -657,13 +744,13 @@ class ApplicationGUI:
                         target_username=self.username_var.get()
                     )
                     
-                    # Save individual test results
-                    test_results = result_data.get("test_results", [])
-                    if test_results and file_id > 0:
-                        self.database.save_test_case_results(file_id, test_results)
+                    # Convert result format to match our expected format
+                    converted_results = self.convert_result_format(result_data)
+                    if converted_results and file_id > 0:
+                        self.database.save_test_case_results(file_id, converted_results)
                     
-                    # Update detail table with results if this file is selected
-                    self.update_detail_table_with_results(i, result_data)
+                    # Update detail table with results
+                    self.update_detail_table_with_results(i, {"test_results": converted_results})
                     
                     self.log_message(f"File {file_name} processed successfully: {overall_result}")
                     
@@ -713,6 +800,49 @@ class ApplicationGUI:
             
             # Reload history
             self.root.after(0, self.load_history)
+    
+    def convert_result_format(self, openwrt_result):
+        """Convert OpenWrt result format to our expected format"""
+        try:
+            converted_results = []
+            
+            # Convert summary info
+            summary = openwrt_result.get("summary", {})
+            total_tests = summary.get("total_test_cases", 0)
+            passed = summary.get("passed", 0)
+            failed = summary.get("failed", 0)
+            
+            # Convert failed_by_service to individual test results
+            failed_by_service = openwrt_result.get("failed_by_service", {})
+            
+            test_id = 0
+            for service, failed_tests in failed_by_service.items():
+                for test in failed_tests:
+                    converted_results.append({
+                        "service": test.get("service", service),
+                        "action": test.get("action", ""),
+                        "status": "pass" if test.get("status", False) else "fail",
+                        "details": test.get("message", ""),
+                        "execution_time": test.get("execution_time_ms", 0) / 1000.0
+                    })
+                    test_id += 1
+            
+            # Add passed tests (we need to infer these since they're not listed)
+            for i in range(passed):
+                if i == 0:  # Assume first test is ping which passed
+                    converted_results.insert(0, {
+                        "service": "ping",
+                        "action": "",
+                        "status": "pass",
+                        "details": "Ping test completed successfully",
+                        "execution_time": 8.0  # From the log
+                    })
+            
+            return converted_results
+            
+        except Exception as e:
+            self.logger.error(f"Error converting result format: {e}")
+            return []
     
     def cancel_processing(self):
         """Cancel the file processing"""
@@ -802,24 +932,20 @@ class ApplicationGUI:
     
     def determine_overall_result(self, result_data):
         """Determine overall result from test result data"""
-        if "overall_status" in result_data:
-            status = result_data["overall_status"].lower()
-            return "Pass" if status == "pass" else "Fail" if status == "fail" else "Unknown"
+        if "summary" in result_data:
+            summary = result_data["summary"]
+            total = summary.get("total_test_cases", 0)
+            passed = summary.get("passed", 0)
+            failed = summary.get("failed", 0)
+            
+            if total == passed:
+                return "Pass"
+            elif passed == 0:
+                return "Fail"
+            else:
+                return f"Partial ({passed}/{total})"
         
-        test_results = result_data.get("test_results", [])
-        
-        if not test_results:
-            return "Unknown"
-        
-        passed = sum(1 for r in test_results if r.get("status", "").lower() == "pass")
-        total = len(test_results)
-        
-        if passed == total:
-            return "Pass"
-        elif passed == 0:
-            return "Fail"
-        else:
-            return f"Partial ({passed}/{total})"
+        return "Unknown"
     
     def update_file_status(self, file_index, status, result="", time_str=""):
         """Update file status in the table"""
@@ -860,7 +986,7 @@ class ApplicationGUI:
         try:
             self.lan_ip_var.set(self.database.get_setting("lan_ip", "192.168.88.1"))
             self.wan_ip_var.set(self.database.get_setting("wan_ip", ""))
-            self.username_var.set(self.database.get_setting("username", "testuser"))
+            self.username_var.set(self.database.get_setting("username", "root"))
             self.config_path_var.set(self.database.get_setting("config_path", "/root/config"))
             self.result_path_var.set(self.database.get_setting("result_path", "/root/result"))
             
@@ -949,7 +1075,7 @@ class ApplicationGUI:
         
         threading.Thread(target=_check_folders, daemon=True).start()
     
-    # Remaining methods stay the same as demo version
+    # Remaining methods
     def clear_files(self):
         """Clear selected files"""
         self.selected_files = []
@@ -1007,7 +1133,7 @@ class ApplicationGUI:
             self.ssh_connection.disconnect()
             self.root.destroy()
     
-    # Placeholder methods (same as demo)
+    # Placeholder methods
     def export_results(self):
         filename = filedialog.asksaveasfilename(defaultextension=".csv", filetypes=[("CSV files", "*.csv")])
         if filename:

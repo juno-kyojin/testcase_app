@@ -1,0 +1,28 @@
+{
+	"summary":	{
+		"total_test_cases":	3,
+		"passed":	1,
+		"failed":	2,
+		"failed_services":	["wan", "lan"]
+	},
+	"failed_by_service":	{
+		"wan":	[{
+				"id":	1,
+				"service":	"wan",
+				"action":	"create",
+				"execution_time_ms":	0,
+				"timestamp":	"2025-05-22 09:50:49",
+				"status":	false,
+				"message":	"Handler failed to return output"
+			}],
+		"lan":	[{
+				"id":	2,
+				"service":	"lan",
+				"action":	"create",
+				"execution_time_ms":	0,
+				"timestamp":	"2025-05-22 09:50:49",
+				"status":	false,
+				"message":	"Unknown service or action"
+			}]
+	}
+}
