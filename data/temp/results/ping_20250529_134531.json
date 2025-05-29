@@ -11,16 +11,16 @@
 				"service":	"wan",
 				"action":	"create",
 				"execution_time_ms":	0,
-				"timestamp":	"2025-05-22 09:50:49",
+				"timestamp":	"2025-05-29 13:45:31",
 				"status":	false,
-				"message":	"Handler failed to return output"
+				"message":	"Invalid input parameters"
 			}],
 		"lan":	[{
 				"id":	2,
 				"service":	"lan",
 				"action":	"create",
 				"execution_time_ms":	0,
-				"timestamp":	"2025-05-22 09:50:49",
+				"timestamp":	"2025-05-29 13:45:31",
 				"status":	false,
 				"message":	"Unknown service or action"
 			}]

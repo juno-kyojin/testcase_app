@@ -1,0 +1,23 @@
+[2025-05-29 10:41:12] Testing connection to 192.168.88.1...
+[2025-05-29 10:41:12] Connection attempt 1/3...
+[2025-05-29 10:41:12] All remote paths verified
+[2025-05-29 10:41:12] Connection successful - All systems ready
+[2025-05-29 10:41:55] File selection cleared
+[2025-05-29 10:41:55] Selected 1 valid files
+[2025-05-29 10:42:04] Establishing SSH connection...
+[2025-05-29 10:42:04] Processing file 1/1: ping.json
+[2025-05-29 10:42:04] File ping.json uploaded successfully
+[2025-05-29 10:42:04] Waiting for result file: ping_*.json in /root/result
+[2025-05-29 10:42:15] [10s] Found result using pattern-based: ping_20250529_104213.json
+[2025-05-29 10:42:16] Result file ping_20250529_104213.json downloaded successfully
+[2025-05-29 10:42:16] File ping.json processed successfully: Partial (1/3)
+[2025-05-29 10:42:16] All 1 files processed in 11.7 seconds
+[2025-05-29 10:42:25] File selection cleared
+[2025-05-29 10:42:25] Selected 1 valid files
+[2025-05-29 10:42:28] Establishing SSH connection...
+[2025-05-29 10:42:28] Processing file 1/1: wan_create.json
+[2025-05-29 10:42:28] File wan_create.json uploaded successfully
+[2025-05-29 10:42:28] Waiting for result file: wan_create_*.json in /root/result
+[2025-05-29 10:42:44] [16s] Still waiting for result file...
+[2025-05-29 10:42:59] [31s] Still waiting for result file...
+

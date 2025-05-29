@@ -1,0 +1,598 @@
+2025-05-29 10:41:02,460 - gui.interface - INFO - Application started by juno-kyojin
+2025-05-29 10:41:02,461 - storage.database - INFO - Database initialized: data/history.db
+2025-05-29 10:41:12,344 - gui.interface - INFO - Testing connection to 192.168.88.1...
+2025-05-29 10:41:12,346 - gui.interface - INFO - Connection attempt 1/3...
+2025-05-29 10:41:12,346 - network.connection - INFO - SSH connection closed
+2025-05-29 10:41:12,346 - network.connection - INFO - Connecting to 192.168.88.1:22 as root
+2025-05-29 10:41:12,362 - paramiko.transport - INFO - Connected (version 2.0, client dropbear)
+2025-05-29 10:41:12,440 - paramiko.transport - INFO - Authentication (password) successful!
+2025-05-29 10:41:12,455 - network.connection - INFO - SSH connection established successfully
+2025-05-29 10:41:12,628 - gui.interface - INFO - All remote paths verified
+2025-05-29 10:41:12,639 - gui.interface - INFO - Connection successful - All systems ready
+2025-05-29 10:41:55,537 - gui.interface - INFO - File selection cleared
+2025-05-29 10:41:55,537 - files.manager - INFO - File validation successful: /home/tobie/testcase_app/test/ping.json
+2025-05-29 10:41:55,537 - gui.interface - INFO - Selected 1 valid files
+2025-05-29 10:42:04,441 - gui.interface - INFO - Establishing SSH connection...
+2025-05-29 10:42:04,520 - gui.interface - INFO - Processing file 1/1: ping.json
+2025-05-29 10:42:04,521 - network.connection - INFO - Attempting to upload: /home/tobie/testcase_app/test/ping.json -> /root/config/ping.json
+2025-05-29 10:42:04,673 - network.connection - INFO - Directory ensured: /root/config
+2025-05-29 10:42:04,814 - network.connection - INFO - File uploaded via scp (sshpass): /home/tobie/testcase_app/test/ping.json -> /root/config/ping.json
+2025-05-29 10:42:04,815 - gui.interface - INFO - File ping.json uploaded successfully
+2025-05-29 10:42:04,822 - gui.interface - INFO - Waiting for result file: ping_*.json in /root/result
+2025-05-29 10:42:15,987 - gui.interface - INFO - [10s] Found result using pattern-based: ping_20250529_104213.json
+2025-05-29 10:42:15,987 - network.connection - INFO - Attempting to download: /root/result/ping_20250529_104213.json -> data/temp/results/ping_20250529_104213.json
+2025-05-29 10:42:16,110 - network.connection - INFO - File downloaded via scp: /root/result/ping_20250529_104213.json -> data/temp/results/ping_20250529_104213.json
+2025-05-29 10:42:16,111 - gui.interface - INFO - Result file ping_20250529_104213.json downloaded successfully
+2025-05-29 10:42:16,155 - gui.interface - INFO - File ping.json processed successfully: Partial (1/3)
+2025-05-29 10:42:16,165 - gui.interface - INFO - All 1 files processed in 11.7 seconds
+2025-05-29 10:42:25,186 - gui.interface - INFO - File selection cleared
+2025-05-29 10:42:25,195 - files.manager - INFO - File validation successful: /home/tobie/testcase_app/test/wan_create.json
+2025-05-29 10:42:25,196 - gui.interface - INFO - Selected 1 valid files
+2025-05-29 10:42:28,188 - gui.interface - INFO - Establishing SSH connection...
+2025-05-29 10:42:28,266 - gui.interface - INFO - Processing file 1/1: wan_create.json
+2025-05-29 10:42:28,267 - network.connection - INFO - Attempting to upload: /home/tobie/testcase_app/test/wan_create.json -> /root/config/wan_create.json
+2025-05-29 10:42:28,408 - network.connection - INFO - Directory ensured: /root/config
+2025-05-29 10:42:28,532 - network.connection - INFO - File uploaded via scp (sshpass): /home/tobie/testcase_app/test/wan_create.json -> /root/config/wan_create.json
+2025-05-29 10:42:28,533 - gui.interface - INFO - File wan_create.json uploaded successfully
+2025-05-29 10:42:28,533 - gui.interface - INFO - Waiting for result file: wan_create_*.json in /root/result
+2025-05-29 10:42:35,787 - paramiko.transport - WARNING - Success for unrequested channel! [??]
+2025-05-29 10:42:44,321 - gui.interface - INFO - [16s] Still waiting for result file...
+2025-05-29 10:42:59,322 - gui.interface - INFO - [31s] Still waiting for result file...
+2025-05-29 10:43:17,935 - gui.interface - INFO - [49s] Still waiting for result file...
+2025-05-29 10:43:18,888 - gui.interface - INFO - Logs exported to /home/tobie/testcase_app/test/resultlog.log
+2025-05-29 10:43:32,937 - gui.interface - INFO - [64s] Still waiting for result file...
+2025-05-29 10:43:47,938 - gui.interface - INFO - [79s] Still waiting for result file...
+2025-05-29 10:44:03,544 - gui.interface - INFO - [95s] Still waiting for result file...
+2025-05-29 10:44:14,251 - gui.interface - INFO - Processing cancelled by user
+2025-05-29 10:44:15,546 - gui.interface - INFO - [Exception] Error processing wan_create.json: Timeout waiting for result file after 120 seconds
+2025-05-29 10:44:15,546 - gui.interface - INFO - Retrying wan_create.json in 5 seconds...
+2025-05-29 10:44:20,547 - gui.interface - INFO - Attempting to reconnect...
+2025-05-29 10:44:20,548 - network.connection - INFO - SSH connection closed
+2025-05-29 10:44:20,548 - network.connection - INFO - Connecting to 192.168.88.1:22 as root
+2025-05-29 10:44:20,560 - paramiko.transport - INFO - Connected (version 2.0, client dropbear)
+2025-05-29 10:44:20,638 - paramiko.transport - INFO - Authentication (password) successful!
+2025-05-29 10:44:20,654 - network.connection - INFO - SSH connection established successfully
+2025-05-29 10:44:20,655 - gui.interface - INFO - Reconnection successful
+2025-05-29 10:45:09,443 - network.connection - INFO - SSH connection closed
+2025-05-29 10:45:09,444 - gui.interface - INFO - Application closed normally by juno-kyojin
+2025-05-29 10:48:06,124 - gui.interface - INFO - Application started by juno-kyojin
+2025-05-29 10:48:06,125 - storage.database - INFO - Database initialized: data/history.db
+2025-05-29 10:48:13,496 - gui.interface - INFO - Testing connection to 192.168.88.1...
+2025-05-29 10:48:13,497 - gui.interface - INFO - Connection attempt 1/3...
+2025-05-29 10:48:23,220 - gui.interface - INFO - Testing connection to 192.168.88.1...
+2025-05-29 10:48:23,221 - gui.interface - INFO - Connection attempt 1/3...
+2025-05-29 10:48:31,439 - gui.interface - INFO - Testing connection to 192.168.88.1...
+2025-05-29 10:48:31,440 - gui.interface - INFO - Connection attempt 1/3...
+2025-05-29 10:48:42,311 - gui.interface - INFO - History filter cleared
+2025-05-29 10:48:52,454 - gui.interface - INFO - File selection cleared
+2025-05-29 10:48:52,454 - files.manager - INFO - File validation successful: /home/tobie/testcase_app/test/ping.json
+2025-05-29 10:48:52,454 - gui.interface - INFO - Selected 1 valid files
+2025-05-29 10:48:57,018 - gui.interface - INFO - Establishing SSH connection...
+2025-05-29 10:49:23,777 - gui.interface - INFO - Application started by juno-kyojin
+2025-05-29 10:49:23,777 - storage.database - INFO - Database initialized: data/history.db
+2025-05-29 10:49:29,994 - gui.interface - INFO - Testing connection to 192.168.88.1...
+2025-05-29 10:49:29,995 - gui.interface - INFO - Connection attempt 1/3...
+2025-05-29 10:49:29,995 - network.connection - INFO - SSH connection closed
+2025-05-29 10:49:29,996 - network.connection - INFO - Connecting to 192.168.88.1:22 as root
+2025-05-29 10:49:30,010 - paramiko.transport - INFO - Connected (version 2.0, client dropbear)
+2025-05-29 10:49:30,091 - paramiko.transport - INFO - Authentication (password) successful!
+2025-05-29 10:49:30,100 - network.connection - INFO - SSH connection established successfully
+2025-05-29 10:49:30,278 - gui.interface - INFO - All remote paths verified
+2025-05-29 10:49:30,289 - gui.interface - INFO - Connection successful - All systems ready
+2025-05-29 10:50:41,353 - gui.interface - INFO - Application started by juno-kyojin
+2025-05-29 10:50:41,353 - storage.database - INFO - Database initialized: data/history.db
+2025-05-29 10:50:46,640 - gui.interface - INFO - Testing connection to 192.168.88.1...
+2025-05-29 10:50:46,641 - gui.interface - INFO - Connection attempt 1/3...
+2025-05-29 10:50:46,642 - network.connection - INFO - Connecting to 192.168.88.1:22 as root
+2025-05-29 10:50:46,658 - paramiko.transport - INFO - Connected (version 2.0, client dropbear)
+2025-05-29 10:50:46,736 - paramiko.transport - INFO - Authentication (password) successful!
+2025-05-29 10:50:46,746 - network.connection - INFO - SSH connection established successfully
+2025-05-29 10:50:46,927 - gui.interface - INFO - All remote paths verified
+2025-05-29 10:50:46,945 - gui.interface - INFO - Connection successful - All systems ready
+2025-05-29 10:50:52,931 - gui.interface - INFO - File selection cleared
+2025-05-29 10:50:52,932 - files.manager - INFO - File validation successful: /home/tobie/testcase_app/test/ping.json
+2025-05-29 10:50:52,932 - gui.interface - INFO - Selected 1 valid files
+2025-05-29 10:50:56,034 - gui.interface - INFO - Establishing SSH connection...
+2025-05-29 10:50:56,105 - gui.interface - INFO - Processing file 1/1: ping.json
+2025-05-29 10:50:56,106 - network.connection - INFO - Uploading: /home/tobie/testcase_app/test/ping.json -> /root/config/ping.json
+2025-05-29 10:50:56,271 - network.connection - ERROR - scp upload failed: ash: /usr/libexec/sftp-server: not found
+scp: Connection closed
+
+2025-05-29 10:50:56,430 - network.connection - INFO - File uploaded via SSH cat: ping.json
+2025-05-29 10:50:56,431 - gui.interface - INFO - File ping.json uploaded successfully
+2025-05-29 10:50:56,432 - gui.interface - INFO - Waiting for result file: ping_*.json in /root/result
+2025-05-29 10:50:57,967 - gui.interface - INFO - [0s] Found result using latest-file: ping_20250529_104213.json
+2025-05-29 10:50:57,967 - network.connection - INFO - Downloading: /root/result/ping_20250529_104213.json -> data/temp/results/ping_20250529_104213.json
+2025-05-29 10:50:58,114 - network.connection - ERROR - scp download failed: ash: /usr/libexec/sftp-server: not found
+scp: Connection closed
+
+2025-05-29 10:50:58,167 - network.connection - INFO - File downloaded via SSH cat: ping_20250529_104213.json
+2025-05-29 10:50:58,194 - gui.interface - INFO - Result file ping_20250529_104213.json downloaded successfully
+2025-05-29 10:50:58,224 - gui.interface - INFO - File ping.json processed successfully: Partial (1/3)
+2025-05-29 10:50:58,233 - gui.interface - INFO - All 1 files processed in 2.2 seconds
+2025-05-29 10:51:31,817 - gui.interface - INFO - Application started by juno-kyojin
+2025-05-29 10:51:31,817 - storage.database - INFO - Database initialized: data/history.db
+2025-05-29 10:51:36,904 - gui.interface - INFO - Testing connection to 192.168.88.1...
+2025-05-29 10:51:36,906 - gui.interface - INFO - Connection attempt 1/3...
+2025-05-29 10:51:36,906 - network.connection - INFO - SSH connection closed
+2025-05-29 10:51:36,906 - network.connection - INFO - Connecting to 192.168.88.1:22 as root
+2025-05-29 10:51:36,919 - paramiko.transport - INFO - Connected (version 2.0, client dropbear)
+2025-05-29 10:51:37,264 - paramiko.transport - INFO - Authentication (password) failed.
+2025-05-29 10:51:37,265 - network.connection - ERROR - Connection error: Authentication failed.
+2025-05-29 10:51:37,266 - gui.interface - INFO - Attempt 1 failed, retrying in 2s...
+2025-05-29 10:51:42,880 - gui.interface - INFO - Connection attempt 2/3...
+2025-05-29 10:51:42,880 - network.connection - INFO - SSH connection closed
+2025-05-29 10:51:42,880 - network.connection - INFO - Connecting to 192.168.88.1:22 as root
+2025-05-29 10:51:42,893 - paramiko.transport - INFO - Connected (version 2.0, client dropbear)
+2025-05-29 10:51:43,246 - paramiko.transport - INFO - Authentication (password) failed.
+2025-05-29 10:51:43,246 - network.connection - ERROR - Connection error: Authentication failed.
+2025-05-29 10:51:43,247 - gui.interface - INFO - Attempt 2 failed, retrying in 4s...
+2025-05-29 10:51:47,247 - gui.interface - INFO - Connection attempt 3/3...
+2025-05-29 10:51:47,247 - network.connection - INFO - SSH connection closed
+2025-05-29 10:51:47,248 - network.connection - INFO - Connecting to 192.168.88.1:22 as root
+2025-05-29 10:51:47,261 - paramiko.transport - INFO - Connected (version 2.0, client dropbear)
+2025-05-29 10:51:47,612 - network.connection - ERROR - Connection error: Authentication failed: transport shut down or saw EOF
+2025-05-29 10:51:47,631 - gui.interface - INFO - Connection failed: Authentication failed after all attempts
+2025-05-29 10:51:49,394 - gui.interface - INFO - Testing connection to 192.168.88.1...
+2025-05-29 10:51:49,395 - gui.interface - INFO - Connection attempt 1/3...
+2025-05-29 10:51:49,395 - network.connection - INFO - SSH connection closed
+2025-05-29 10:51:49,395 - network.connection - INFO - Connecting to 192.168.88.1:22 as root
+2025-05-29 10:51:49,397 - paramiko.transport - ERROR - Exception (client): Error reading SSH protocol banner[Errno 104] Connection reset by peer
+2025-05-29 10:51:49,400 - paramiko.transport - ERROR - Traceback (most recent call last):
+2025-05-29 10:51:49,400 - paramiko.transport - ERROR -   File "/home/tobie/.local/lib/python3.12/site-packages/paramiko/transport.py", line 2369, in _check_banner
+2025-05-29 10:51:49,400 - paramiko.transport - ERROR -     buf = self.packetizer.readline(timeout)
+2025-05-29 10:51:49,400 - paramiko.transport - ERROR -           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+2025-05-29 10:51:49,400 - paramiko.transport - ERROR -   File "/home/tobie/.local/lib/python3.12/site-packages/paramiko/packet.py", line 395, in readline
+2025-05-29 10:51:49,400 - paramiko.transport - ERROR -     buf += self._read_timeout(timeout)
+2025-05-29 10:51:49,400 - paramiko.transport - ERROR -            ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+2025-05-29 10:51:49,400 - paramiko.transport - ERROR -   File "/home/tobie/.local/lib/python3.12/site-packages/paramiko/packet.py", line 663, in _read_timeout
+2025-05-29 10:51:49,400 - paramiko.transport - ERROR -     x = self.__socket.recv(128)
+2025-05-29 10:51:49,400 - paramiko.transport - ERROR -         ^^^^^^^^^^^^^^^^^^^^^^^
+2025-05-29 10:51:49,400 - paramiko.transport - ERROR - ConnectionResetError: [Errno 104] Connection reset by peer
+2025-05-29 10:51:49,401 - paramiko.transport - ERROR - 
+2025-05-29 10:51:49,401 - paramiko.transport - ERROR - During handling of the above exception, another exception occurred:
+2025-05-29 10:51:49,401 - paramiko.transport - ERROR - 
+2025-05-29 10:51:49,401 - paramiko.transport - ERROR - Traceback (most recent call last):
+2025-05-29 10:51:49,401 - paramiko.transport - ERROR -   File "/home/tobie/.local/lib/python3.12/site-packages/paramiko/transport.py", line 2185, in run
+2025-05-29 10:51:49,401 - paramiko.transport - ERROR -     self._check_banner()
+2025-05-29 10:51:49,401 - paramiko.transport - ERROR -   File "/home/tobie/.local/lib/python3.12/site-packages/paramiko/transport.py", line 2373, in _check_banner
+2025-05-29 10:51:49,401 - paramiko.transport - ERROR -     raise SSHException(
+2025-05-29 10:51:49,401 - paramiko.transport - ERROR - paramiko.ssh_exception.SSHException: Error reading SSH protocol banner[Errno 104] Connection reset by peer
+2025-05-29 10:51:49,401 - paramiko.transport - ERROR - 
+2025-05-29 10:51:49,401 - network.connection - ERROR - Connection error: Error reading SSH protocol banner[Errno 104] Connection reset by peer
+2025-05-29 10:51:49,402 - gui.interface - INFO - Attempt 1 failed, retrying in 2s...
+2025-05-29 10:51:51,402 - gui.interface - INFO - Connection attempt 2/3...
+2025-05-29 10:51:51,402 - network.connection - INFO - SSH connection closed
+2025-05-29 10:51:51,403 - network.connection - INFO - Connecting to 192.168.88.1:22 as root
+2025-05-29 10:51:51,405 - paramiko.transport - ERROR - Exception (client): Error reading SSH protocol banner
+2025-05-29 10:51:51,405 - paramiko.transport - ERROR - Traceback (most recent call last):
+2025-05-29 10:51:51,405 - paramiko.transport - ERROR -   File "/home/tobie/.local/lib/python3.12/site-packages/paramiko/transport.py", line 2369, in _check_banner
+2025-05-29 10:51:51,405 - paramiko.transport - ERROR -     buf = self.packetizer.readline(timeout)
+2025-05-29 10:51:51,405 - paramiko.transport - ERROR -           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+2025-05-29 10:51:51,405 - paramiko.transport - ERROR -   File "/home/tobie/.local/lib/python3.12/site-packages/paramiko/packet.py", line 395, in readline
+2025-05-29 10:51:51,405 - paramiko.transport - ERROR -     buf += self._read_timeout(timeout)
+2025-05-29 10:51:51,405 - paramiko.transport - ERROR -            ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+2025-05-29 10:51:51,405 - paramiko.transport - ERROR -   File "/home/tobie/.local/lib/python3.12/site-packages/paramiko/packet.py", line 665, in _read_timeout
+2025-05-29 10:51:51,406 - paramiko.transport - ERROR -     raise EOFError()
+2025-05-29 10:51:51,406 - paramiko.transport - ERROR - EOFError
+2025-05-29 10:51:51,406 - paramiko.transport - ERROR - 
+2025-05-29 10:51:51,406 - paramiko.transport - ERROR - During handling of the above exception, another exception occurred:
+2025-05-29 10:51:51,406 - paramiko.transport - ERROR - 
+2025-05-29 10:51:51,406 - paramiko.transport - ERROR - Traceback (most recent call last):
+2025-05-29 10:51:51,406 - paramiko.transport - ERROR -   File "/home/tobie/.local/lib/python3.12/site-packages/paramiko/transport.py", line 2185, in run
+2025-05-29 10:51:51,406 - paramiko.transport - ERROR -     self._check_banner()
+2025-05-29 10:51:51,406 - paramiko.transport - ERROR -   File "/home/tobie/.local/lib/python3.12/site-packages/paramiko/transport.py", line 2373, in _check_banner
+2025-05-29 10:51:51,406 - paramiko.transport - ERROR -     raise SSHException(
+2025-05-29 10:51:51,406 - paramiko.transport - ERROR - paramiko.ssh_exception.SSHException: Error reading SSH protocol banner
+2025-05-29 10:51:51,406 - paramiko.transport - ERROR - 
+2025-05-29 10:51:51,406 - network.connection - ERROR - Connection error: Error reading SSH protocol banner
+2025-05-29 10:51:51,407 - gui.interface - INFO - Attempt 2 failed, retrying in 4s...
+2025-05-29 10:51:54,764 - gui.interface - INFO - Testing connection to 192.168.88.1...
+2025-05-29 10:51:54,765 - gui.interface - INFO - Connection attempt 1/3...
+2025-05-29 10:51:54,765 - network.connection - INFO - SSH connection closed
+2025-05-29 10:51:54,765 - network.connection - INFO - Connecting to 192.168.88.1:22 as root
+2025-05-29 10:51:54,767 - paramiko.transport - ERROR - Exception (client): Error reading SSH protocol banner[Errno 104] Connection reset by peer
+2025-05-29 10:51:54,767 - paramiko.transport - ERROR - Traceback (most recent call last):
+2025-05-29 10:51:54,768 - paramiko.transport - ERROR -   File "/home/tobie/.local/lib/python3.12/site-packages/paramiko/transport.py", line 2369, in _check_banner
+2025-05-29 10:51:54,768 - paramiko.transport - ERROR -     buf = self.packetizer.readline(timeout)
+2025-05-29 10:51:54,768 - paramiko.transport - ERROR -           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+2025-05-29 10:51:54,768 - paramiko.transport - ERROR -   File "/home/tobie/.local/lib/python3.12/site-packages/paramiko/packet.py", line 395, in readline
+2025-05-29 10:51:54,768 - paramiko.transport - ERROR -     buf += self._read_timeout(timeout)
+2025-05-29 10:51:54,768 - paramiko.transport - ERROR -            ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+2025-05-29 10:51:54,768 - paramiko.transport - ERROR -   File "/home/tobie/.local/lib/python3.12/site-packages/paramiko/packet.py", line 663, in _read_timeout
+2025-05-29 10:51:54,768 - paramiko.transport - ERROR -     x = self.__socket.recv(128)
+2025-05-29 10:51:54,768 - paramiko.transport - ERROR -         ^^^^^^^^^^^^^^^^^^^^^^^
+2025-05-29 10:51:54,768 - paramiko.transport - ERROR - ConnectionResetError: [Errno 104] Connection reset by peer
+2025-05-29 10:51:54,768 - paramiko.transport - ERROR - 
+2025-05-29 10:51:54,768 - paramiko.transport - ERROR - During handling of the above exception, another exception occurred:
+2025-05-29 10:51:54,768 - paramiko.transport - ERROR - 
+2025-05-29 10:51:54,768 - paramiko.transport - ERROR - Traceback (most recent call last):
+2025-05-29 10:51:54,768 - paramiko.transport - ERROR -   File "/home/tobie/.local/lib/python3.12/site-packages/paramiko/transport.py", line 2185, in run
+2025-05-29 10:51:54,768 - paramiko.transport - ERROR -     self._check_banner()
+2025-05-29 10:51:54,768 - paramiko.transport - ERROR -   File "/home/tobie/.local/lib/python3.12/site-packages/paramiko/transport.py", line 2373, in _check_banner
+2025-05-29 10:51:54,769 - paramiko.transport - ERROR -     raise SSHException(
+2025-05-29 10:51:54,769 - paramiko.transport - ERROR - paramiko.ssh_exception.SSHException: Error reading SSH protocol banner[Errno 104] Connection reset by peer
+2025-05-29 10:51:54,769 - paramiko.transport - ERROR - 
+2025-05-29 10:51:54,769 - network.connection - ERROR - Connection error: Error reading SSH protocol banner[Errno 104] Connection reset by peer
+2025-05-29 10:51:54,769 - gui.interface - INFO - Attempt 1 failed, retrying in 2s...
+2025-05-29 10:51:55,407 - gui.interface - INFO - Connection attempt 3/3...
+2025-05-29 10:51:55,407 - network.connection - INFO - SSH connection closed
+2025-05-29 10:51:55,407 - network.connection - INFO - Connecting to 192.168.88.1:22 as root
+2025-05-29 10:51:55,410 - paramiko.transport - ERROR - Exception (client): Error reading SSH protocol banner[Errno 104] Connection reset by peer
+2025-05-29 10:51:55,410 - paramiko.transport - ERROR - Traceback (most recent call last):
+2025-05-29 10:51:55,410 - paramiko.transport - ERROR -   File "/home/tobie/.local/lib/python3.12/site-packages/paramiko/transport.py", line 2369, in _check_banner
+2025-05-29 10:51:55,410 - paramiko.transport - ERROR -     buf = self.packetizer.readline(timeout)
+2025-05-29 10:51:55,410 - paramiko.transport - ERROR -           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+2025-05-29 10:51:55,410 - paramiko.transport - ERROR -   File "/home/tobie/.local/lib/python3.12/site-packages/paramiko/packet.py", line 395, in readline
+2025-05-29 10:51:55,410 - paramiko.transport - ERROR -     buf += self._read_timeout(timeout)
+2025-05-29 10:51:55,410 - paramiko.transport - ERROR -            ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+2025-05-29 10:51:55,410 - paramiko.transport - ERROR -   File "/home/tobie/.local/lib/python3.12/site-packages/paramiko/packet.py", line 663, in _read_timeout
+2025-05-29 10:51:55,410 - paramiko.transport - ERROR -     x = self.__socket.recv(128)
+2025-05-29 10:51:55,410 - paramiko.transport - ERROR -         ^^^^^^^^^^^^^^^^^^^^^^^
+2025-05-29 10:51:55,410 - paramiko.transport - ERROR - ConnectionResetError: [Errno 104] Connection reset by peer
+2025-05-29 10:51:55,411 - paramiko.transport - ERROR - 
+2025-05-29 10:51:55,411 - paramiko.transport - ERROR - During handling of the above exception, another exception occurred:
+2025-05-29 10:51:55,411 - paramiko.transport - ERROR - 
+2025-05-29 10:51:55,411 - paramiko.transport - ERROR - Traceback (most recent call last):
+2025-05-29 10:51:55,411 - paramiko.transport - ERROR -   File "/home/tobie/.local/lib/python3.12/site-packages/paramiko/transport.py", line 2185, in run
+2025-05-29 10:51:55,411 - paramiko.transport - ERROR -     self._check_banner()
+2025-05-29 10:51:55,411 - paramiko.transport - ERROR -   File "/home/tobie/.local/lib/python3.12/site-packages/paramiko/transport.py", line 2373, in _check_banner
+2025-05-29 10:51:55,411 - paramiko.transport - ERROR -     raise SSHException(
+2025-05-29 10:51:55,411 - paramiko.transport - ERROR - paramiko.ssh_exception.SSHException: Error reading SSH protocol banner[Errno 104] Connection reset by peer
+2025-05-29 10:51:55,411 - paramiko.transport - ERROR - 
+2025-05-29 10:51:55,411 - network.connection - ERROR - Connection error: Error reading SSH protocol banner[Errno 104] Connection reset by peer
+2025-05-29 10:51:55,422 - gui.interface - INFO - Connection failed: Authentication failed after all attempts
+2025-05-29 10:51:56,770 - gui.interface - INFO - Connection attempt 2/3...
+2025-05-29 10:51:56,771 - network.connection - INFO - SSH connection closed
+2025-05-29 10:51:56,771 - network.connection - INFO - Connecting to 192.168.88.1:22 as root
+2025-05-29 10:51:56,773 - paramiko.transport - ERROR - Exception (client): Error reading SSH protocol banner
+2025-05-29 10:51:56,773 - paramiko.transport - ERROR - Traceback (most recent call last):
+2025-05-29 10:51:56,773 - paramiko.transport - ERROR -   File "/home/tobie/.local/lib/python3.12/site-packages/paramiko/transport.py", line 2369, in _check_banner
+2025-05-29 10:51:56,773 - paramiko.transport - ERROR -     buf = self.packetizer.readline(timeout)
+2025-05-29 10:51:56,774 - paramiko.transport - ERROR -           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+2025-05-29 10:51:56,774 - paramiko.transport - ERROR -   File "/home/tobie/.local/lib/python3.12/site-packages/paramiko/packet.py", line 395, in readline
+2025-05-29 10:51:56,774 - paramiko.transport - ERROR -     buf += self._read_timeout(timeout)
+2025-05-29 10:51:56,774 - paramiko.transport - ERROR -            ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+2025-05-29 10:51:56,774 - paramiko.transport - ERROR -   File "/home/tobie/.local/lib/python3.12/site-packages/paramiko/packet.py", line 665, in _read_timeout
+2025-05-29 10:51:56,774 - paramiko.transport - ERROR -     raise EOFError()
+2025-05-29 10:51:56,774 - paramiko.transport - ERROR - EOFError
+2025-05-29 10:51:56,774 - paramiko.transport - ERROR - 
+2025-05-29 10:51:56,774 - paramiko.transport - ERROR - During handling of the above exception, another exception occurred:
+2025-05-29 10:51:56,774 - paramiko.transport - ERROR - 
+2025-05-29 10:51:56,774 - paramiko.transport - ERROR - Traceback (most recent call last):
+2025-05-29 10:51:56,774 - paramiko.transport - ERROR -   File "/home/tobie/.local/lib/python3.12/site-packages/paramiko/transport.py", line 2185, in run
+2025-05-29 10:51:56,774 - paramiko.transport - ERROR -     self._check_banner()
+2025-05-29 10:51:56,774 - paramiko.transport - ERROR -   File "/home/tobie/.local/lib/python3.12/site-packages/paramiko/transport.py", line 2373, in _check_banner
+2025-05-29 10:51:56,774 - paramiko.transport - ERROR -     raise SSHException(
+2025-05-29 10:51:56,774 - paramiko.transport - ERROR - paramiko.ssh_exception.SSHException: Error reading SSH protocol banner
+2025-05-29 10:51:56,774 - paramiko.transport - ERROR - 
+2025-05-29 10:51:56,775 - network.connection - ERROR - Connection error: Error reading SSH protocol banner
+2025-05-29 10:51:56,775 - gui.interface - INFO - Attempt 2 failed, retrying in 4s...
+2025-05-29 10:52:00,228 - network.connection - INFO - SSH connection closed
+2025-05-29 10:52:00,228 - gui.interface - INFO - Application closed normally by juno-kyojin
+2025-05-29 10:52:01,781 - gui.interface - INFO - Application started by juno-kyojin
+2025-05-29 10:52:01,781 - storage.database - INFO - Database initialized: data/history.db
+2025-05-29 10:52:08,010 - gui.interface - INFO - Testing connection to 192.168.88.1...
+2025-05-29 10:52:08,011 - gui.interface - INFO - Connection attempt 1/3...
+2025-05-29 10:52:08,011 - network.connection - INFO - SSH connection closed
+2025-05-29 10:52:08,011 - network.connection - INFO - Connecting to 192.168.88.1:22 as root
+2025-05-29 10:52:08,015 - paramiko.transport - ERROR - Exception (client): Error reading SSH protocol banner[Errno 104] Connection reset by peer
+2025-05-29 10:52:08,016 - paramiko.transport - ERROR - Traceback (most recent call last):
+2025-05-29 10:52:08,016 - paramiko.transport - ERROR -   File "/home/tobie/.local/lib/python3.12/site-packages/paramiko/transport.py", line 2369, in _check_banner
+2025-05-29 10:52:08,016 - paramiko.transport - ERROR -     buf = self.packetizer.readline(timeout)
+2025-05-29 10:52:08,017 - paramiko.transport - ERROR -           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+2025-05-29 10:52:08,017 - paramiko.transport - ERROR -   File "/home/tobie/.local/lib/python3.12/site-packages/paramiko/packet.py", line 395, in readline
+2025-05-29 10:52:08,017 - paramiko.transport - ERROR -     buf += self._read_timeout(timeout)
+2025-05-29 10:52:08,017 - paramiko.transport - ERROR -            ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+2025-05-29 10:52:08,017 - paramiko.transport - ERROR -   File "/home/tobie/.local/lib/python3.12/site-packages/paramiko/packet.py", line 663, in _read_timeout
+2025-05-29 10:52:08,017 - paramiko.transport - ERROR -     x = self.__socket.recv(128)
+2025-05-29 10:52:08,017 - paramiko.transport - ERROR -         ^^^^^^^^^^^^^^^^^^^^^^^
+2025-05-29 10:52:08,017 - paramiko.transport - ERROR - ConnectionResetError: [Errno 104] Connection reset by peer
+2025-05-29 10:52:08,017 - paramiko.transport - ERROR - 
+2025-05-29 10:52:08,017 - paramiko.transport - ERROR - During handling of the above exception, another exception occurred:
+2025-05-29 10:52:08,017 - paramiko.transport - ERROR - 
+2025-05-29 10:52:08,017 - paramiko.transport - ERROR - Traceback (most recent call last):
+2025-05-29 10:52:08,017 - paramiko.transport - ERROR -   File "/home/tobie/.local/lib/python3.12/site-packages/paramiko/transport.py", line 2185, in run
+2025-05-29 10:52:08,017 - paramiko.transport - ERROR -     self._check_banner()
+2025-05-29 10:52:08,017 - paramiko.transport - ERROR -   File "/home/tobie/.local/lib/python3.12/site-packages/paramiko/transport.py", line 2373, in _check_banner
+2025-05-29 10:52:08,017 - paramiko.transport - ERROR -     raise SSHException(
+2025-05-29 10:52:08,018 - paramiko.transport - ERROR - paramiko.ssh_exception.SSHException: Error reading SSH protocol banner[Errno 104] Connection reset by peer
+2025-05-29 10:52:08,018 - paramiko.transport - ERROR - 
+2025-05-29 10:52:08,018 - network.connection - ERROR - Connection error: Error reading SSH protocol banner[Errno 104] Connection reset by peer
+2025-05-29 10:52:08,019 - gui.interface - INFO - Attempt 1 failed, retrying in 2s...
+2025-05-29 10:52:10,019 - gui.interface - INFO - Connection attempt 2/3...
+2025-05-29 10:52:10,019 - network.connection - INFO - SSH connection closed
+2025-05-29 10:52:10,019 - network.connection - INFO - Connecting to 192.168.88.1:22 as root
+2025-05-29 10:52:10,022 - paramiko.transport - ERROR - Exception (client): Error reading SSH protocol banner[Errno 104] Connection reset by peer
+2025-05-29 10:52:10,022 - paramiko.transport - ERROR - Traceback (most recent call last):
+2025-05-29 10:52:10,022 - paramiko.transport - ERROR -   File "/home/tobie/.local/lib/python3.12/site-packages/paramiko/transport.py", line 2369, in _check_banner
+2025-05-29 10:52:10,022 - paramiko.transport - ERROR -     buf = self.packetizer.readline(timeout)
+2025-05-29 10:52:10,022 - paramiko.transport - ERROR -           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+2025-05-29 10:52:10,023 - paramiko.transport - ERROR -   File "/home/tobie/.local/lib/python3.12/site-packages/paramiko/packet.py", line 395, in readline
+2025-05-29 10:52:10,023 - paramiko.transport - ERROR -     buf += self._read_timeout(timeout)
+2025-05-29 10:52:10,023 - paramiko.transport - ERROR -            ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+2025-05-29 10:52:10,023 - paramiko.transport - ERROR -   File "/home/tobie/.local/lib/python3.12/site-packages/paramiko/packet.py", line 663, in _read_timeout
+2025-05-29 10:52:10,023 - paramiko.transport - ERROR -     x = self.__socket.recv(128)
+2025-05-29 10:52:10,023 - paramiko.transport - ERROR -         ^^^^^^^^^^^^^^^^^^^^^^^
+2025-05-29 10:52:10,023 - paramiko.transport - ERROR - ConnectionResetError: [Errno 104] Connection reset by peer
+2025-05-29 10:52:10,023 - paramiko.transport - ERROR - 
+2025-05-29 10:52:10,023 - paramiko.transport - ERROR - During handling of the above exception, another exception occurred:
+2025-05-29 10:52:10,023 - paramiko.transport - ERROR - 
+2025-05-29 10:52:10,023 - paramiko.transport - ERROR - Traceback (most recent call last):
+2025-05-29 10:52:10,023 - paramiko.transport - ERROR -   File "/home/tobie/.local/lib/python3.12/site-packages/paramiko/transport.py", line 2185, in run
+2025-05-29 10:52:10,023 - paramiko.transport - ERROR -     self._check_banner()
+2025-05-29 10:52:10,023 - paramiko.transport - ERROR -   File "/home/tobie/.local/lib/python3.12/site-packages/paramiko/transport.py", line 2373, in _check_banner
+2025-05-29 10:52:10,023 - paramiko.transport - ERROR -     raise SSHException(
+2025-05-29 10:52:10,023 - paramiko.transport - ERROR - paramiko.ssh_exception.SSHException: Error reading SSH protocol banner[Errno 104] Connection reset by peer
+2025-05-29 10:52:10,023 - paramiko.transport - ERROR - 
+2025-05-29 10:52:10,023 - network.connection - ERROR - Connection error: Error reading SSH protocol banner[Errno 104] Connection reset by peer
+2025-05-29 10:52:10,024 - gui.interface - INFO - Attempt 2 failed, retrying in 4s...
+2025-05-29 10:52:14,024 - gui.interface - INFO - Connection attempt 3/3...
+2025-05-29 10:52:14,025 - network.connection - INFO - SSH connection closed
+2025-05-29 10:52:14,025 - network.connection - INFO - Connecting to 192.168.88.1:22 as root
+2025-05-29 10:52:14,027 - paramiko.transport - ERROR - Exception (client): Error reading SSH protocol banner[Errno 104] Connection reset by peer
+2025-05-29 10:52:14,027 - paramiko.transport - ERROR - Traceback (most recent call last):
+2025-05-29 10:52:14,027 - paramiko.transport - ERROR -   File "/home/tobie/.local/lib/python3.12/site-packages/paramiko/transport.py", line 2369, in _check_banner
+2025-05-29 10:52:14,027 - paramiko.transport - ERROR -     buf = self.packetizer.readline(timeout)
+2025-05-29 10:52:14,027 - paramiko.transport - ERROR -           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+2025-05-29 10:52:14,027 - paramiko.transport - ERROR -   File "/home/tobie/.local/lib/python3.12/site-packages/paramiko/packet.py", line 395, in readline
+2025-05-29 10:52:14,028 - paramiko.transport - ERROR -     buf += self._read_timeout(timeout)
+2025-05-29 10:52:14,028 - paramiko.transport - ERROR -            ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+2025-05-29 10:52:14,028 - paramiko.transport - ERROR -   File "/home/tobie/.local/lib/python3.12/site-packages/paramiko/packet.py", line 663, in _read_timeout
+2025-05-29 10:52:14,028 - paramiko.transport - ERROR -     x = self.__socket.recv(128)
+2025-05-29 10:52:14,028 - paramiko.transport - ERROR -         ^^^^^^^^^^^^^^^^^^^^^^^
+2025-05-29 10:52:14,028 - paramiko.transport - ERROR - ConnectionResetError: [Errno 104] Connection reset by peer
+2025-05-29 10:52:14,028 - paramiko.transport - ERROR - 
+2025-05-29 10:52:14,028 - paramiko.transport - ERROR - During handling of the above exception, another exception occurred:
+2025-05-29 10:52:14,028 - paramiko.transport - ERROR - 
+2025-05-29 10:52:14,028 - paramiko.transport - ERROR - Traceback (most recent call last):
+2025-05-29 10:52:14,028 - paramiko.transport - ERROR -   File "/home/tobie/.local/lib/python3.12/site-packages/paramiko/transport.py", line 2185, in run
+2025-05-29 10:52:14,028 - paramiko.transport - ERROR -     self._check_banner()
+2025-05-29 10:52:14,028 - paramiko.transport - ERROR -   File "/home/tobie/.local/lib/python3.12/site-packages/paramiko/transport.py", line 2373, in _check_banner
+2025-05-29 10:52:14,028 - paramiko.transport - ERROR -     raise SSHException(
+2025-05-29 10:52:14,028 - paramiko.transport - ERROR - paramiko.ssh_exception.SSHException: Error reading SSH protocol banner[Errno 104] Connection reset by peer
+2025-05-29 10:52:14,028 - paramiko.transport - ERROR - 
+2025-05-29 10:52:14,028 - network.connection - ERROR - Connection error: Error reading SSH protocol banner[Errno 104] Connection reset by peer
+2025-05-29 10:52:14,047 - gui.interface - INFO - Connection failed: Authentication failed after all attempts
+2025-05-29 10:52:24,747 - gui.interface - INFO - Testing connection to 192.168.88.1...
+2025-05-29 10:52:24,748 - gui.interface - INFO - Connection attempt 1/3...
+2025-05-29 10:52:24,748 - network.connection - INFO - SSH connection closed
+2025-05-29 10:52:24,749 - network.connection - INFO - Connecting to 192.168.88.1:22 as root
+2025-05-29 10:52:24,751 - paramiko.transport - ERROR - Exception (client): Error reading SSH protocol banner[Errno 104] Connection reset by peer
+2025-05-29 10:52:24,751 - paramiko.transport - ERROR - Traceback (most recent call last):
+2025-05-29 10:52:24,751 - paramiko.transport - ERROR -   File "/home/tobie/.local/lib/python3.12/site-packages/paramiko/transport.py", line 2369, in _check_banner
+2025-05-29 10:52:24,751 - paramiko.transport - ERROR -     buf = self.packetizer.readline(timeout)
+2025-05-29 10:52:24,751 - paramiko.transport - ERROR -           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+2025-05-29 10:52:24,751 - paramiko.transport - ERROR -   File "/home/tobie/.local/lib/python3.12/site-packages/paramiko/packet.py", line 395, in readline
+2025-05-29 10:52:24,752 - paramiko.transport - ERROR -     buf += self._read_timeout(timeout)
+2025-05-29 10:52:24,752 - paramiko.transport - ERROR -            ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+2025-05-29 10:52:24,752 - paramiko.transport - ERROR -   File "/home/tobie/.local/lib/python3.12/site-packages/paramiko/packet.py", line 663, in _read_timeout
+2025-05-29 10:52:24,752 - paramiko.transport - ERROR -     x = self.__socket.recv(128)
+2025-05-29 10:52:24,752 - paramiko.transport - ERROR -         ^^^^^^^^^^^^^^^^^^^^^^^
+2025-05-29 10:52:24,752 - paramiko.transport - ERROR - ConnectionResetError: [Errno 104] Connection reset by peer
+2025-05-29 10:52:24,752 - paramiko.transport - ERROR - 
+2025-05-29 10:52:24,752 - paramiko.transport - ERROR - During handling of the above exception, another exception occurred:
+2025-05-29 10:52:24,752 - paramiko.transport - ERROR - 
+2025-05-29 10:52:24,752 - paramiko.transport - ERROR - Traceback (most recent call last):
+2025-05-29 10:52:24,752 - paramiko.transport - ERROR -   File "/home/tobie/.local/lib/python3.12/site-packages/paramiko/transport.py", line 2185, in run
+2025-05-29 10:52:24,752 - paramiko.transport - ERROR -     self._check_banner()
+2025-05-29 10:52:24,752 - paramiko.transport - ERROR -   File "/home/tobie/.local/lib/python3.12/site-packages/paramiko/transport.py", line 2373, in _check_banner
+2025-05-29 10:52:24,752 - paramiko.transport - ERROR -     raise SSHException(
+2025-05-29 10:52:24,752 - paramiko.transport - ERROR - paramiko.ssh_exception.SSHException: Error reading SSH protocol banner[Errno 104] Connection reset by peer
+2025-05-29 10:52:24,752 - paramiko.transport - ERROR - 
+2025-05-29 10:52:24,753 - network.connection - ERROR - Connection error: Error reading SSH protocol banner[Errno 104] Connection reset by peer
+2025-05-29 10:52:24,753 - gui.interface - INFO - Attempt 1 failed, retrying in 2s...
+2025-05-29 10:52:26,251 - network.connection - INFO - SSH connection closed
+2025-05-29 10:52:26,251 - gui.interface - INFO - Application closed normally by juno-kyojin
+2025-05-29 11:20:52,242 - gui.interface - INFO - Application started by juno-kyojin
+2025-05-29 11:20:52,243 - storage.database - INFO - Database initialized: data/history.db
+2025-05-29 11:20:59,333 - gui.interface - INFO - Testing connection to 192.168.88.1...
+2025-05-29 11:20:59,335 - gui.interface - INFO - Connection attempt 1/3...
+2025-05-29 11:20:59,335 - network.connection - INFO - SSH connection closed
+2025-05-29 11:20:59,335 - network.connection - INFO - Connecting to 192.168.88.1:22 as root
+2025-05-29 11:20:59,350 - paramiko.transport - INFO - Connected (version 2.0, client dropbear)
+2025-05-29 11:20:59,424 - paramiko.transport - INFO - Authentication (password) successful!
+2025-05-29 11:20:59,433 - network.connection - INFO - SSH connection established successfully
+2025-05-29 11:20:59,632 - gui.interface - INFO - All remote paths verified
+2025-05-29 11:20:59,650 - gui.interface - INFO - Connection successful - All systems ready
+2025-05-29 11:21:03,082 - gui.interface - INFO - File selection cleared
+2025-05-29 11:21:03,083 - files.manager - INFO - File validation successful: /home/tobie/testcase_app/test/wan_create.json
+2025-05-29 11:21:03,084 - gui.interface - INFO - Selected 1 valid files
+2025-05-29 11:21:12,260 - gui.interface - INFO - Establishing SSH connection...
+2025-05-29 11:21:12,340 - gui.interface - INFO - Processing file 1/1: wan_create.json
+2025-05-29 11:21:12,342 - network.connection - INFO - Attempting to upload: /home/tobie/testcase_app/test/wan_create.json -> /root/config/wan_create.json
+2025-05-29 11:21:12,486 - network.connection - INFO - Directory ensured: /root/config
+2025-05-29 11:21:12,621 - network.connection - INFO - File uploaded via scp (sshpass): /home/tobie/testcase_app/test/wan_create.json -> /root/config/wan_create.json
+2025-05-29 11:21:12,621 - gui.interface - INFO - File wan_create.json uploaded successfully
+2025-05-29 11:21:12,622 - gui.interface - INFO - Waiting for result file in /root/result
+2025-05-29 11:21:21,039 - gui.interface - INFO - [0s] Found new result file: wan_create_20250529_112118.json
+2025-05-29 11:21:21,040 - network.connection - INFO - Attempting to download: /root/result/wan_create_20250529_112118.json -> data/temp/results/wan_create_20250529_112118.json
+2025-05-29 11:21:21,287 - network.connection - INFO - File downloaded via scp: /root/result/wan_create_20250529_112118.json -> data/temp/results/wan_create_20250529_112118.json
+2025-05-29 11:21:21,287 - gui.interface - INFO - Result file wan_create_20250529_112118.json downloaded successfully
+2025-05-29 11:21:21,316 - gui.interface - INFO - File wan_create.json processed successfully: Pass
+2025-05-29 11:21:21,316 - gui.interface - INFO - All 1 files processed in 9.1 seconds
+2025-05-29 11:21:49,648 - gui.interface - INFO - File selection cleared
+2025-05-29 11:21:49,658 - files.manager - INFO - File validation successful: /home/tobie/testcase_app/test/ping.json
+2025-05-29 11:21:49,658 - gui.interface - INFO - Selected 1 valid files
+2025-05-29 11:21:54,666 - gui.interface - INFO - Establishing SSH connection...
+2025-05-29 11:21:54,729 - gui.interface - INFO - Processing file 1/1: ping.json
+2025-05-29 11:21:54,730 - network.connection - INFO - Attempting to upload: /home/tobie/testcase_app/test/ping.json -> /root/config/ping.json
+2025-05-29 11:21:54,878 - network.connection - INFO - Directory ensured: /root/config
+2025-05-29 11:21:55,034 - network.connection - INFO - File uploaded via scp (sshpass): /home/tobie/testcase_app/test/ping.json -> /root/config/ping.json
+2025-05-29 11:21:55,035 - gui.interface - INFO - File ping.json uploaded successfully
+2025-05-29 11:21:55,035 - gui.interface - INFO - Waiting for result file in /root/result
+2025-05-29 11:22:05,595 - gui.interface - INFO - [9s] Found new result file: ping_20250529_112204.json
+2025-05-29 11:22:05,595 - network.connection - INFO - Attempting to download: /root/result/ping_20250529_112204.json -> data/temp/results/ping_20250529_112204.json
+2025-05-29 11:22:05,714 - network.connection - INFO - File downloaded via scp: /root/result/ping_20250529_112204.json -> data/temp/results/ping_20250529_112204.json
+2025-05-29 11:22:05,714 - gui.interface - INFO - Result file ping_20250529_112204.json downloaded successfully
+2025-05-29 11:22:05,737 - gui.interface - INFO - File ping.json processed successfully: Partial (1/3)
+2025-05-29 11:22:05,745 - gui.interface - INFO - All 1 files processed in 11.1 seconds
+2025-05-29 11:22:17,600 - gui.interface - INFO - File selection cleared
+2025-05-29 11:22:17,600 - files.manager - INFO - File validation successful: /home/tobie/testcase_app/test/ping.json
+2025-05-29 11:22:17,600 - files.manager - INFO - File validation successful: /home/tobie/testcase_app/test/wan_create.json
+2025-05-29 11:22:17,600 - gui.interface - INFO - Selected 2 valid files
+2025-05-29 11:22:32,508 - gui.interface - INFO - Establishing SSH connection...
+2025-05-29 11:22:32,583 - gui.interface - INFO - Processing file 1/2: ping.json
+2025-05-29 11:22:32,584 - network.connection - INFO - Attempting to upload: /home/tobie/testcase_app/test/ping.json -> /root/config/ping.json
+2025-05-29 11:22:32,750 - network.connection - INFO - Directory ensured: /root/config
+2025-05-29 11:22:32,899 - network.connection - INFO - File uploaded via scp (sshpass): /home/tobie/testcase_app/test/ping.json -> /root/config/ping.json
+2025-05-29 11:22:32,900 - gui.interface - INFO - File ping.json uploaded successfully
+2025-05-29 11:22:32,901 - gui.interface - INFO - Waiting for result file in /root/result
+2025-05-29 11:22:43,468 - gui.interface - INFO - [9s] Found new result file: ping_20250529_112242.json
+2025-05-29 11:22:43,468 - network.connection - INFO - Attempting to download: /root/result/ping_20250529_112242.json -> data/temp/results/ping_20250529_112242.json
+2025-05-29 11:22:43,603 - network.connection - INFO - File downloaded via scp: /root/result/ping_20250529_112242.json -> data/temp/results/ping_20250529_112242.json
+2025-05-29 11:22:43,603 - gui.interface - INFO - Result file ping_20250529_112242.json downloaded successfully
+2025-05-29 11:22:43,633 - gui.interface - INFO - File ping.json processed successfully: Partial (1/3)
+2025-05-29 11:22:43,634 - gui.interface - INFO - Processing file 2/2: wan_create.json
+2025-05-29 11:22:43,634 - network.connection - INFO - Attempting to upload: /home/tobie/testcase_app/test/wan_create.json -> /root/config/wan_create.json
+2025-05-29 11:22:43,789 - network.connection - INFO - Directory ensured: /root/config
+2025-05-29 11:22:43,926 - network.connection - INFO - File uploaded via scp (sshpass): /home/tobie/testcase_app/test/wan_create.json -> /root/config/wan_create.json
+2025-05-29 11:22:43,926 - gui.interface - INFO - File wan_create.json uploaded successfully
+2025-05-29 11:22:43,927 - gui.interface - INFO - Waiting for result file in /root/result
+2025-05-29 11:22:51,167 - paramiko.transport - WARNING - Success for unrequested channel! [??]
+2025-05-29 11:23:02,564 - gui.interface - INFO - [19s] Still waiting for result file...
+2025-05-29 11:23:17,565 - gui.interface - INFO - [34s] Still waiting for result file...
+2025-05-29 11:23:36,223 - gui.interface - INFO - [52s] Still waiting for result file...
+2025-05-29 11:23:51,224 - gui.interface - INFO - [67s] Still waiting for result file...
+2025-05-29 11:24:06,225 - gui.interface - INFO - [82s] Still waiting for result file...
+2025-05-29 11:24:21,842 - gui.interface - INFO - [98s] Still waiting for result file...
+2025-05-29 11:24:36,843 - gui.interface - INFO - [113s] Still waiting for result file...
+2025-05-29 11:24:49,432 - gui.interface - INFO - [Exception] Error processing wan_create.json: Timeout waiting for result file after 120 seconds
+2025-05-29 11:24:49,432 - gui.interface - INFO - Retrying wan_create.json in 5 seconds...
+2025-05-29 11:24:54,434 - gui.interface - INFO - Attempting to reconnect...
+2025-05-29 11:24:54,434 - network.connection - INFO - SSH connection closed
+2025-05-29 11:24:54,434 - network.connection - INFO - Connecting to 192.168.88.1:22 as root
+2025-05-29 11:24:54,449 - paramiko.transport - INFO - Connected (version 2.0, client dropbear)
+2025-05-29 11:24:54,529 - paramiko.transport - INFO - Authentication (password) successful!
+2025-05-29 11:24:54,539 - network.connection - INFO - SSH connection established successfully
+2025-05-29 11:24:54,540 - gui.interface - INFO - Reconnection successful
+2025-05-29 11:24:54,558 - gui.interface - INFO - All 2 files processed in 142.1 seconds
+2025-05-29 12:25:52,285 - gui.interface - INFO - Cleaned up 4 old temporary files
+                                                                                                                                                                        2025-05-29 13:36:53,595 - gui.interface - INFO - Application started by juno-kyojin
+2025-05-29 13:36:53,597 - storage.database - INFO - Database initialized: data/history.db
+2025-05-29 13:37:00,331 - gui.interface - INFO - Testing connection to 192.168.88.1...
+2025-05-29 13:37:00,333 - gui.interface - INFO - Connection attempt 1/3...
+2025-05-29 13:37:00,333 - network.connection - INFO - SSH connection closed
+2025-05-29 13:37:00,333 - network.connection - INFO - Connecting to 192.168.88.1:22 as root
+2025-05-29 13:37:00,349 - paramiko.transport - INFO - Connected (version 2.0, client dropbear)
+2025-05-29 13:37:00,434 - paramiko.transport - INFO - Authentication (password) successful!
+2025-05-29 13:37:00,445 - network.connection - INFO - SSH connection established successfully
+2025-05-29 13:37:00,632 - gui.interface - INFO - All remote paths verified
+2025-05-29 13:37:00,648 - gui.interface - INFO - Connection successful - All systems ready
+2025-05-29 13:37:07,360 - gui.interface - INFO - File selection cleared
+2025-05-29 13:37:07,361 - files.manager - INFO - File validation successful: /home/tobie/testcase_app/test/ping.json
+2025-05-29 13:37:07,362 - files.manager - INFO - File validation successful: /home/tobie/testcase_app/test/wan_create.json
+2025-05-29 13:37:07,362 - gui.interface - INFO - Selected 2 valid files
+2025-05-29 13:37:09,920 - gui.interface - INFO - Establishing SSH connection...
+2025-05-29 13:37:10,009 - gui.interface - INFO - Processing file 1/2: ping.json
+2025-05-29 13:37:10,011 - network.connection - INFO - Attempting to upload: /home/tobie/testcase_app/test/ping.json -> /root/config/ping.json
+2025-05-29 13:37:10,169 - network.connection - INFO - Directory ensured: /root/config
+2025-05-29 13:37:10,368 - network.connection - INFO - File uploaded via scp (sshpass): /home/tobie/testcase_app/test/ping.json -> /root/config/ping.json
+2025-05-29 13:37:10,369 - gui.interface - INFO - File ping.json uploaded successfully
+2025-05-29 13:37:10,370 - gui.interface - INFO - Waiting for result file in /root/result
+2025-05-29 13:37:10,455 - gui.interface - INFO - Initial file count: 8
+2025-05-29 13:37:25,478 - gui.interface - INFO - [15s] Still waiting for result file...
+2025-05-29 13:37:41,090 - gui.interface - INFO - [31s] Still waiting for result file...
+2025-05-29 13:37:50,879 - gui.interface - INFO - Processing cancelled by user
+2025-05-29 13:37:51,555 - gui.interface - INFO - Timeout approaching, trying aggressive file search...
+2025-05-29 13:37:51,614 - gui.interface - INFO - [Exception] Error processing ping.json: Timeout waiting for result file after 120 seconds
+2025-05-29 13:37:51,615 - gui.interface - INFO - Retrying ping.json in 5 seconds...
+2025-05-29 13:38:00,645 - gui.interface - INFO - Establishing SSH connection...
+2025-05-29 13:38:00,730 - gui.interface - INFO - Processing file 1/2: ping.json
+2025-05-29 13:38:00,731 - network.connection - INFO - Attempting to upload: /home/tobie/testcase_app/test/ping.json -> /root/config/ping.json
+2025-05-29 13:38:00,888 - network.connection - INFO - Directory ensured: /root/config
+2025-05-29 13:38:01,015 - network.connection - INFO - File uploaded via scp (sshpass): /home/tobie/testcase_app/test/ping.json -> /root/config/ping.json
+2025-05-29 13:38:01,016 - gui.interface - INFO - File ping.json uploaded successfully
+2025-05-29 13:38:01,017 - gui.interface - INFO - Waiting for result file in /root/result
+2025-05-29 13:38:01,102 - gui.interface - INFO - Initial file count: 8
+2025-05-29 13:38:10,814 - gui.interface - INFO - Found 1 new files: ping_20250529_133811.json
+2025-05-29 13:38:11,960 - gui.interface - INFO - [10s] Found new result file: ping_20250529_133811.json
+2025-05-29 13:38:11,960 - network.connection - INFO - Attempting to download: /root/result/ping_20250529_133811.json -> data/temp/results/ping_20250529_133811.json
+2025-05-29 13:38:15,003 - network.connection - INFO - File downloaded via scp: /root/result/ping_20250529_133811.json -> data/temp/results/ping_20250529_133811.json
+2025-05-29 13:38:15,003 - gui.interface - INFO - Result file ping_20250529_133811.json downloaded successfully
+2025-05-29 13:38:15,035 - gui.interface - INFO - File ping.json processed successfully: Partial (1/3)
+2025-05-29 13:38:15,036 - gui.interface - INFO - Processing file 2/2: wan_create.json
+2025-05-29 13:38:15,037 - network.connection - INFO - Attempting to upload: /home/tobie/testcase_app/test/wan_create.json -> /root/config/wan_create.json
+2025-05-29 13:38:15,188 - network.connection - INFO - Directory ensured: /root/config
+2025-05-29 13:38:15,334 - network.connection - INFO - File uploaded via scp (sshpass): /home/tobie/testcase_app/test/wan_create.json -> /root/config/wan_create.json
+2025-05-29 13:38:15,335 - gui.interface - INFO - File wan_create.json uploaded successfully
+2025-05-29 13:38:15,336 - gui.interface - INFO - Waiting for result file in /root/result
+2025-05-29 13:38:15,411 - gui.interface - INFO - Initial file count: 9
+2025-05-29 13:38:30,446 - gui.interface - INFO - [15s] Still waiting for result file...
+2025-05-29 13:38:45,449 - gui.interface - INFO - [30s] Still waiting for result file...
+2025-05-29 13:39:01,386 - gui.interface - INFO - [46s] Still waiting for result file...
+2025-05-29 13:39:16,389 - gui.interface - INFO - [61s] Still waiting for result file...
+2025-05-29 13:39:32,318 - gui.interface - INFO - [77s] Still waiting for result file...
+2025-05-29 13:39:47,320 - gui.interface - INFO - [92s] Still waiting for result file...
+2025-05-29 13:40:03,261 - gui.interface - INFO - [108s] Still waiting for result file...
+2025-05-29 13:40:16,263 - gui.interface - INFO - Timeout approaching, trying aggressive file search...
+2025-05-29 13:40:16,264 - gui.interface - INFO - [Exception] Error processing wan_create.json: Timeout waiting for result file after 120 seconds
+2025-05-29 13:40:16,264 - gui.interface - INFO - Retrying wan_create.json in 5 seconds...
+2025-05-29 13:40:21,266 - gui.interface - INFO - Attempting to reconnect...
+2025-05-29 13:40:21,267 - network.connection - INFO - SSH connection closed
+2025-05-29 13:40:21,267 - network.connection - INFO - Connecting to 192.168.88.1:22 as root
+2025-05-29 13:40:21,281 - paramiko.transport - INFO - Connected (version 2.0, client dropbear)
+2025-05-29 13:40:21,363 - paramiko.transport - INFO - Authentication (password) successful!
+2025-05-29 13:40:21,373 - network.connection - INFO - SSH connection established successfully
+2025-05-29 13:40:21,374 - gui.interface - INFO - Reconnection successful
+2025-05-29 13:40:21,384 - gui.interface - INFO - All 2 files processed in 140.7 seconds
+2025-05-29 13:42:01,673 - network.connection - INFO - SSH connection closed
+2025-05-29 13:42:01,673 - gui.interface - INFO - Application closed normally by juno-kyojin
+2025-05-29 13:44:59,019 - gui.interface - INFO - Application started by juno-kyojin
+2025-05-29 13:44:59,019 - storage.database - INFO - Database initialized: data/history.db
+2025-05-29 13:45:06,361 - gui.interface - INFO - Testing connection to 192.168.88.1...
+2025-05-29 13:45:06,362 - gui.interface - INFO - Connection attempt 1/3...
+2025-05-29 13:45:06,362 - network.connection - INFO - SSH connection closed
+2025-05-29 13:45:06,362 - network.connection - INFO - Connecting to 192.168.88.1:22 as root
+2025-05-29 13:45:06,377 - paramiko.transport - INFO - Connected (version 2.0, client dropbear)
+2025-05-29 13:45:06,454 - paramiko.transport - INFO - Authentication (password) successful!
+2025-05-29 13:45:06,465 - network.connection - INFO - SSH connection established successfully
+2025-05-29 13:45:06,655 - gui.interface - INFO - All remote paths verified
+2025-05-29 13:45:06,666 - gui.interface - INFO - Connection successful - All systems ready
+2025-05-29 13:45:18,161 - gui.interface - INFO - File selection cleared
+2025-05-29 13:45:18,162 - files.manager - INFO - File validation successful: /home/tobie/testcase_app/test/ping.json
+2025-05-29 13:45:18,162 - files.manager - INFO - File validation successful: /home/tobie/testcase_app/test/wan_create.json
+2025-05-29 13:45:18,162 - gui.interface - INFO - Selected 2 valid files
+2025-05-29 13:45:22,202 - gui.interface - INFO - Establishing SSH connection...
+2025-05-29 13:45:22,291 - gui.interface - INFO - Processing file 1/2: ping.json
+2025-05-29 13:45:22,292 - network.connection - INFO - Attempting to upload: /home/tobie/testcase_app/test/ping.json -> /root/config/ping.json
+2025-05-29 13:45:22,441 - network.connection - INFO - Directory ensured: /root/config
+2025-05-29 13:45:22,575 - network.connection - INFO - File uploaded via scp (sshpass): /home/tobie/testcase_app/test/ping.json -> /root/config/ping.json
+2025-05-29 13:45:22,575 - gui.interface - INFO - File ping.json uploaded successfully
+2025-05-29 13:45:22,576 - gui.interface - INFO - Waiting for result file in /root/result
+2025-05-29 13:45:22,636 - gui.interface - INFO - Initial file count: 10
+2025-05-29 13:45:32,813 - gui.interface - INFO - Found new file via latest check: ping_20250529_134531.json
+2025-05-29 13:45:33,545 - network.connection - INFO - Attempting to download: /root/result/ping_20250529_134531.json -> data/temp/results/ping_20250529_134531.json
+2025-05-29 13:45:33,681 - network.connection - INFO - File downloaded via scp: /root/result/ping_20250529_134531.json -> data/temp/results/ping_20250529_134531.json
+2025-05-29 13:45:33,682 - gui.interface - INFO - Result file ping_20250529_134531.json downloaded successfully
+2025-05-29 13:45:33,711 - gui.interface - INFO - File ping.json processed successfully: Partial (1/3)
+2025-05-29 13:45:33,712 - gui.interface - INFO - Processing file 2/2: wan_create.json
+2025-05-29 13:45:33,713 - network.connection - INFO - Attempting to upload: /home/tobie/testcase_app/test/wan_create.json -> /root/config/wan_create.json
+2025-05-29 13:45:33,863 - network.connection - INFO - Directory ensured: /root/config
+2025-05-29 13:45:33,988 - network.connection - INFO - File uploaded via scp (sshpass): /home/tobie/testcase_app/test/wan_create.json -> /root/config/wan_create.json
+2025-05-29 13:45:33,988 - gui.interface - INFO - File wan_create.json uploaded successfully
+2025-05-29 13:45:33,989 - gui.interface - INFO - Waiting for result file in /root/result
+2025-05-29 13:45:34,057 - gui.interface - INFO - Initial file count: 11
+2025-05-29 13:45:37,092 - gui.interface - INFO - Connection lost. Attempting to reconnect (1/10)...
+2025-05-29 13:45:42,094 - network.connection - INFO - SSH connection closed
+2025-05-29 13:45:42,094 - network.connection - INFO - Connecting to 192.168.88.1:22 as root
+2025-05-29 13:45:42,107 - paramiko.transport - INFO - Connected (version 2.0, client dropbear)
+2025-05-29 13:45:42,214 - paramiko.transport - INFO - Authentication (password) successful!
+2025-05-29 13:45:42,239 - network.connection - INFO - SSH connection established successfully
+2025-05-29 13:45:42,240 - gui.interface - INFO - Successfully reconnected after network interruption
+2025-05-29 13:45:42,498 - gui.interface - INFO - Found new file via latest check: wan_create_20250529_134542.json
+2025-05-29 13:45:42,728 - network.connection - INFO - Attempting to download: /root/result/wan_create_20250529_134542.json -> data/temp/results/wan_create_20250529_134542.json
+2025-05-29 13:45:42,940 - network.connection - INFO - File downloaded via scp: /root/result/wan_create_20250529_134542.json -> data/temp/results/wan_create_20250529_134542.json
+2025-05-29 13:45:42,941 - gui.interface - INFO - Result file wan_create_20250529_134542.json downloaded successfully
+2025-05-29 13:45:42,971 - gui.interface - INFO - File wan_create.json processed successfully: Pass
+2025-05-29 13:45:42,971 - gui.interface - INFO - All 2 files processed in 20.8 seconds
+2025-05-29 13:46:40,367 - gui.interface - INFO - Exporting history to /home/tobie/testcase_app/test/wan.csv...
+2025-05-29 13:47:16,825 - gui.interface - INFO - Testing connection to 192.168.88.1...
+2025-05-29 13:47:16,835 - gui.interface - INFO - Connection attempt 1/3...
+2025-05-29 13:47:16,835 - network.connection - INFO - SSH connection closed
+2025-05-29 13:47:16,835 - network.connection - INFO - Connecting to 192.168.88.1:22 as root
+2025-05-29 13:47:16,848 - paramiko.transport - INFO - Connected (version 2.0, client dropbear)
+2025-05-29 13:47:16,928 - paramiko.transport - INFO - Authentication (password) successful!
+2025-05-29 13:47:16,942 - network.connection - INFO - SSH connection established successfully
+2025-05-29 13:47:17,151 - gui.interface - INFO - All remote paths verified
+2025-05-29 13:47:17,179 - gui.interface - INFO - Connection successful - All systems ready
