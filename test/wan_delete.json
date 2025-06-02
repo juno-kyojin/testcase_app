@@ -1,0 +1,12 @@
+{
+    "test_cases": [
+        {
+            "service" : "wan",
+            "action" : "delete",
+            "params":{
+                "name": "wan1"
+            }
+        }
+    ]
+
+}

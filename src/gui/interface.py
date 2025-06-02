@@ -2,8 +2,8 @@
 # -*- coding: utf-8 -*-
 
 # Module: interface.py
-# Purpose: Main GUI window with enhanced functionality and improved error handling
-# Last updated: 2025-05-29 by juno-kyojin
+# Purpose: Main GUI window for Test Case Manager (Windows Edition)
+# Last updated: 2025-06-02 by juno-kyojin
 
 import os
 import sys
@@ -13,15 +13,14 @@ from tkinter import ttk, filedialog, messagebox
 import threading
 import time
 import logging
+import sqlite3
+import csv
 from typing import Optional, Tuple, List, Dict
 
-# Import các module thực tế
-sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..')))
-
-from network.connection import SSHConnection
+# Import các module windows-specific
 from files.manager import TestFileManager
+from network.connection import SSHConnection
 from storage.database import TestDatabase
-
 # Configuration constants
 class AppConfig:
     DEFAULT_TIMEOUT = 120
@@ -43,9 +42,29 @@ class AppConfig:
 class ApplicationGUI:
     def __init__(self, root):
         self.root = root
-        self.root.title("Test Case Manager v2.0")
-        self.root.geometry("900x700")
-        self.root.minsize(800, 600)
+        self.root.title("Test Case Manager v2.0 - Windows Edition")
+        
+        # Tính toán kích thước cửa sổ phù hợp
+        screen_width = root.winfo_screenwidth()
+        screen_height = root.winfo_screenheight()
+        
+        # Đảm bảo kích thước mặc định hợp lý (80% của màn hình)
+        window_width = min(int(screen_width * 0.8), 1200)
+        window_height = min(int(screen_height * 0.8), 800)
+        
+        # Đảm bảo ít nhất 800x600
+        window_width = max(window_width, 800)
+        window_height = max(window_height, 600)
+        
+        # Tính toán vị trí để cửa sổ hiển thị chính giữa màn hình
+        x_position = (screen_width - window_width) // 2
+        y_position = (screen_height - window_height) // 2
+        
+        # Đặt kích thước và vị trí
+        self.root.geometry(f"{window_width}x{window_height}+{x_position}+{y_position}")
+        
+        # Đặt kích thước tối thiểu để đảm bảo luôn thấy được tất cả các thành phần
+        self.root.minsize(800, 650)
         
         # Setup enhanced logging
         self.setup_logging()
@@ -80,6 +99,12 @@ class ApplicationGUI:
         
         # Schedule cleanup task
         self.schedule_cleanup()
+        
+        # Set Windows-specific icon if available
+        try:
+            self.root.iconbitmap("assets/app_icon.ico")
+        except:
+            pass
     
     def setup_logging(self):
         """Setup enhanced logging configuration"""
@@ -95,11 +120,18 @@ class ApplicationGUI:
             ]
         )
         self.logger = logging.getLogger(__name__)
-        self.logger.info("Application started by juno-kyojin")
+        self.logger.info(f"Windows application started by {os.environ.get('USERNAME', 'unknown')}")
     
     def setup_styles(self):
         """Setup enhanced UI styles"""
         self.style = ttk.Style()
+        
+        # Try to use Windows native theme
+        try:
+            self.style.theme_use('vista')
+        except:
+            pass
+            
         self.style.configure("TButton", padding=6)
         self.style.configure("TLabel", padding=3)
         self.style.configure("TFrame", padding=5)
@@ -231,64 +263,76 @@ class ApplicationGUI:
         self.setup_logs_tab()
     
     def setup_main_tab(self):
-        """Setup the main tab content"""
-        # Split the tab into top (connection) and bottom (files) sections
-        main_paned = ttk.PanedWindow(self.main_tab, orient=tk.VERTICAL)
-        main_paned.pack(fill=tk.BOTH, expand=True)
+        """Setup the main tab content using grid layout for consistent display"""
+        # Cấu hình grid cho main_tab
+        self.main_tab.columnconfigure(0, weight=1)  # Cột duy nhất mở rộng đầy đủ
+        self.main_tab.rowconfigure(0, weight=10)    # Connection settings
+        self.main_tab.rowconfigure(1, weight=20)    # File selection
+        self.main_tab.rowconfigure(2, weight=30)    # Detail view
+        self.main_tab.rowconfigure(3, weight=5)     # Action buttons - chiều cao cố định
         
-        # Top section - Connection frame
-        connection_frame = ttk.LabelFrame(main_paned, text="Connection Settings")
-        main_paned.add(connection_frame, weight=1)
+        # ============= Connection Frame =============
+        connection_frame = ttk.LabelFrame(self.main_tab, text="Connection Settings")
+        connection_frame.grid(row=0, column=0, sticky="nsew", padx=10, pady=5)
         
-        # Connection grid
-        conn_grid = ttk.Frame(connection_frame)
-        conn_grid.pack(fill=tk.BOTH, expand=True, padx=5, pady=5)
+        # Cấu hình grid cho connection frame
+        connection_frame.columnconfigure(0, weight=0)  # Label columns - fixed width
+        connection_frame.columnconfigure(1, weight=1)  # Entry columns - expand
+        connection_frame.columnconfigure(2, weight=0)  # Label columns - fixed width
+        connection_frame.columnconfigure(3, weight=1)  # Entry columns - expand
         
-        # Row 0: LAN IP
-        ttk.Label(conn_grid, text="LAN IP:").grid(row=0, column=0, sticky=tk.W, padx=5, pady=5)
-        ttk.Entry(conn_grid, textvariable=self.lan_ip_var, width=30).grid(row=0, column=1, sticky=tk.W+tk.E, padx=5, pady=5)
+        # Row 0
+        ttk.Label(connection_frame, text="LAN IP:").grid(row=0, column=0, sticky=tk.W, padx=5, pady=5)
+        ttk.Entry(connection_frame, textvariable=self.lan_ip_var).grid(row=0, column=1, sticky=tk.EW, padx=5, pady=5)
         
-        # Row 1: WAN IP (Optional)
-        ttk.Label(conn_grid, text="WAN IP (Optional):").grid(row=1, column=0, sticky=tk.W, padx=5, pady=5)
-        ttk.Entry(conn_grid, textvariable=self.wan_ip_var, width=30).grid(row=1, column=1, sticky=tk.W+tk.E, padx=5, pady=5)
+        ttk.Label(connection_frame, text="Config Path:").grid(row=0, column=2, sticky=tk.W, padx=5, pady=5)
+        ttk.Entry(connection_frame, textvariable=self.config_path_var).grid(row=0, column=3, sticky=tk.EW, padx=5, pady=5)
         
-        # Row 2: Username
-        ttk.Label(conn_grid, text="Username:").grid(row=2, column=0, sticky=tk.W, padx=5, pady=5)
-        ttk.Entry(conn_grid, textvariable=self.username_var, width=30).grid(row=2, column=1, sticky=tk.W+tk.E, padx=5, pady=5)
+        # Row 1
+        ttk.Label(connection_frame, text="WAN IP (Optional):").grid(row=1, column=0, sticky=tk.W, padx=5, pady=5)
+        ttk.Entry(connection_frame, textvariable=self.wan_ip_var).grid(row=1, column=1, sticky=tk.EW, padx=5, pady=5)
         
-        # Row 3: Password
-        ttk.Label(conn_grid, text="Password:").grid(row=3, column=0, sticky=tk.W, padx=5, pady=5)
-        ttk.Entry(conn_grid, textvariable=self.password_var, width=30, show="•").grid(row=3, column=1, sticky=tk.W+tk.E, padx=5, pady=5)
+        ttk.Label(connection_frame, text="Result Path:").grid(row=1, column=2, sticky=tk.W, padx=5, pady=5)
+        ttk.Entry(connection_frame, textvariable=self.result_path_var).grid(row=1, column=3, sticky=tk.EW, padx=5, pady=5)
         
-        # Row 4: Config path
-        ttk.Label(conn_grid, text="Config Path:").grid(row=0, column=2, sticky=tk.W, padx=5, pady=5)
-        ttk.Entry(conn_grid, textvariable=self.config_path_var, width=30).grid(row=0, column=3, sticky=tk.W+tk.E, padx=5, pady=5)
+        # Row 2
+        ttk.Label(connection_frame, text="Username:").grid(row=2, column=0, sticky=tk.W, padx=5, pady=5)
+        ttk.Entry(connection_frame, textvariable=self.username_var).grid(row=2, column=1, sticky=tk.EW, padx=5, pady=5)
         
-        # Row 5: Result path
-        ttk.Label(conn_grid, text="Result Path:").grid(row=1, column=2, sticky=tk.W, padx=5, pady=5)
-        ttk.Entry(conn_grid, textvariable=self.result_path_var, width=30).grid(row=1, column=3, sticky=tk.W+tk.E, padx=5, pady=5)
+        # Row 3
+        ttk.Label(connection_frame, text="Password:").grid(row=3, column=0, sticky=tk.W, padx=5, pady=5)
+        ttk.Entry(connection_frame, textvariable=self.password_var, show="•").grid(row=3, column=1, sticky=tk.EW, padx=5, pady=5)
         
         # Connection buttons
-        conn_btn_frame = ttk.Frame(conn_grid)
+        conn_btn_frame = ttk.Frame(connection_frame)
         conn_btn_frame.grid(row=3, column=2, columnspan=2, sticky=tk.E, padx=5, pady=5)
         
         ttk.Button(conn_btn_frame, text="Test Connection", command=self.test_connection).pack(side=tk.LEFT, padx=5)
         ttk.Button(conn_btn_frame, text="Save Settings", command=self.save_config).pack(side=tk.LEFT, padx=5)
         
-        # Middle section - File selection
-        file_frame = ttk.LabelFrame(main_paned, text="Test Files")
-        main_paned.add(file_frame, weight=2)
+        # ============= File Frame =============
+        file_frame = ttk.LabelFrame(self.main_tab, text="Test Files")
+        file_frame.grid(row=1, column=0, sticky="nsew", padx=10, pady=5)
+        
+        # Cấu hình grid cho file frame
+        file_frame.columnconfigure(0, weight=1)
+        file_frame.rowconfigure(0, weight=0)  # Buttons row - fixed height
+        file_frame.rowconfigure(1, weight=1)  # Table row - expands
         
         # File selection buttons
         file_btn_frame = ttk.Frame(file_frame)
-        file_btn_frame.pack(fill=tk.X, padx=5, pady=5)
+        file_btn_frame.grid(row=0, column=0, sticky=tk.W, padx=5, pady=5)
         
         ttk.Button(file_btn_frame, text="Select Files", command=self.select_files).pack(side=tk.LEFT, padx=5)
         ttk.Button(file_btn_frame, text="Clear Selection", command=self.clear_files).pack(side=tk.LEFT, padx=5)
         
         # File table
         file_table_frame = ttk.Frame(file_frame)
-        file_table_frame.pack(fill=tk.BOTH, expand=True, padx=5, pady=5)
+        file_table_frame.grid(row=1, column=0, sticky="nsew", padx=5, pady=5)
+        
+        # Configure grid for table frame
+        file_table_frame.columnconfigure(0, weight=1)
+        file_table_frame.rowconfigure(0, weight=1)
         
         self.file_table = ttk.Treeview(
             file_table_frame, 
@@ -316,19 +360,28 @@ class ApplicationGUI:
         file_table_scrollbar = ttk.Scrollbar(file_table_frame, orient=tk.VERTICAL, command=self.file_table.yview)
         self.file_table.configure(yscrollcommand=file_table_scrollbar.set)
         
-        self.file_table.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
-        file_table_scrollbar.pack(side=tk.RIGHT, fill=tk.Y)
+        # Place table and scrollbar using grid
+        self.file_table.grid(row=0, column=0, sticky="nsew")
+        file_table_scrollbar.grid(row=0, column=1, sticky="ns")
         
         # Bind selection event
         self.file_table.bind("<<TreeviewSelect>>", self.on_file_selected)
         
-        # Bottom section - Test case details
-        detail_frame = ttk.LabelFrame(main_paned, text="Test Case Details")
-        main_paned.add(detail_frame, weight=3)
+        # ============= Detail Frame =============
+        detail_frame = ttk.LabelFrame(self.main_tab, text="Test Case Details")
+        detail_frame.grid(row=2, column=0, sticky="nsew", padx=10, pady=5)
+        
+        # Configure grid for detail frame
+        detail_frame.columnconfigure(0, weight=1)
+        detail_frame.rowconfigure(0, weight=1)
         
         # Test case detail table
         detail_table_frame = ttk.Frame(detail_frame)
-        detail_table_frame.pack(fill=tk.BOTH, expand=True, padx=5, pady=5)
+        detail_table_frame.grid(row=0, column=0, sticky="nsew", padx=5, pady=5)
+        
+        # Configure grid for table frame
+        detail_table_frame.columnconfigure(0, weight=1)
+        detail_table_frame.rowconfigure(0, weight=1)
         
         self.detail_table = ttk.Treeview(
             detail_table_frame, 
@@ -354,29 +407,41 @@ class ApplicationGUI:
         detail_table_scrollbar = ttk.Scrollbar(detail_table_frame, orient=tk.VERTICAL, command=self.detail_table.yview)
         self.detail_table.configure(yscrollcommand=detail_table_scrollbar.set)
         
-        self.detail_table.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
-        detail_table_scrollbar.pack(side=tk.RIGHT, fill=tk.Y)
+        # Place table and scrollbar using grid
+        self.detail_table.grid(row=0, column=0, sticky="nsew")
+        detail_table_scrollbar.grid(row=0, column=1, sticky="ns")
         
-        # Action buttons frame at the bottom
+        # ============= Action Buttons Frame =============
         action_frame = ttk.Frame(self.main_tab)
-        action_frame.pack(fill=tk.X, padx=10, pady=10)
+        action_frame.grid(row=3, column=0, sticky="ew", padx=10, pady=10)
+        
+        # Configure grid for action buttons
+        action_frame.columnconfigure(0, weight=0)  # Send Files button - fixed width
+        action_frame.columnconfigure(1, weight=0)  # Cancel button - fixed width
+        action_frame.columnconfigure(2, weight=1)  # Progress bar - expands
         
         self.send_button = ttk.Button(action_frame, text="Send Files", command=self.send_files)
-        self.send_button.pack(side=tk.LEFT, padx=5)
+        self.send_button.grid(row=0, column=0, padx=5)
         
         self.cancel_button = ttk.Button(action_frame, text="Cancel", command=self.cancel_processing, state=tk.DISABLED)
-        self.cancel_button.pack(side=tk.LEFT, padx=5)
+        self.cancel_button.grid(row=0, column=1, padx=5)
         
         self.progress_var = tk.IntVar()
-        self.progress_bar = ttk.Progressbar(action_frame, orient=tk.HORIZONTAL, length=300, mode='determinate', variable=self.progress_var)
-        self.progress_bar.pack(side=tk.LEFT, fill=tk.X, expand=True, padx=10)
+        self.progress_bar = ttk.Progressbar(action_frame, orient=tk.HORIZONTAL, mode='determinate', variable=self.progress_var)
+        self.progress_bar.grid(row=0, column=2, sticky="ew", padx=10)
         self.progress_var.set(0)
     
     def setup_history_tab(self):
         """Setup the history tab content"""
+        # Use grid layout for history tab
+        self.history_tab.columnconfigure(0, weight=1)
+        self.history_tab.rowconfigure(0, weight=0)  # Filter row - fixed height
+        self.history_tab.rowconfigure(1, weight=1)  # Table row - expands
+        self.history_tab.rowconfigure(2, weight=0)  # Buttons row - fixed height
+        
         # Filter frame
         filter_frame = ttk.Frame(self.history_tab)
-        filter_frame.pack(fill=tk.X, padx=10, pady=10)
+        filter_frame.grid(row=0, column=0, sticky="ew", padx=10, pady=10)
         
         ttk.Label(filter_frame, text="Date:").pack(side=tk.LEFT, padx=5)
         self.date_combo = ttk.Combobox(filter_frame, width=15, values=["All", "Today", "Last 7 Days", "Last 30 Days"])
@@ -384,7 +449,7 @@ class ApplicationGUI:
         self.date_combo.pack(side=tk.LEFT, padx=5)
         
         ttk.Label(filter_frame, text="Status:").pack(side=tk.LEFT, padx=5)
-        self.status_combo = ttk.Combobox(filter_frame, width=15, values=["All", "Pass", "Fail", "Error"])
+        self.status_combo = ttk.Combobox(filter_frame, width=15, values=["All", "Pass", "Fail", "Partial"])
         self.status_combo.current(0)
         self.status_combo.pack(side=tk.LEFT, padx=5)
         
@@ -393,7 +458,11 @@ class ApplicationGUI:
         
         # History table
         history_table_frame = ttk.Frame(self.history_tab)
-        history_table_frame.pack(fill=tk.BOTH, expand=True, padx=10, pady=10)
+        history_table_frame.grid(row=1, column=0, sticky="nsew", padx=10, pady=5)
+        
+        # Configure grid for table frame
+        history_table_frame.columnconfigure(0, weight=1)
+        history_table_frame.rowconfigure(0, weight=1)
         
         self.history_table = ttk.Treeview(
             history_table_frame, 
@@ -421,12 +490,13 @@ class ApplicationGUI:
         history_scrollbar = ttk.Scrollbar(history_table_frame, orient=tk.VERTICAL, command=self.history_table.yview)
         self.history_table.configure(yscrollcommand=history_scrollbar.set)
         
-        self.history_table.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
-        history_scrollbar.pack(side=tk.RIGHT, fill=tk.Y)
+        # Place table and scrollbar using grid
+        self.history_table.grid(row=0, column=0, sticky="nsew")
+        history_scrollbar.grid(row=0, column=1, sticky="ns")
         
         # Action buttons
         history_btn_frame = ttk.Frame(self.history_tab)
-        history_btn_frame.pack(fill=tk.X, padx=10, pady=10)
+        history_btn_frame.grid(row=2, column=0, sticky="ew", padx=10, pady=10)
         
         ttk.Button(history_btn_frame, text="Export to CSV", command=self.export_history).pack(side=tk.LEFT, padx=5)
         ttk.Button(history_btn_frame, text="View Details", command=self.view_history_details).pack(side=tk.LEFT, padx=5)
@@ -434,24 +504,38 @@ class ApplicationGUI:
     
     def setup_logs_tab(self):
         """Setup the logs tab content"""
+        # Use grid layout for logs tab
+        self.logs_tab.columnconfigure(0, weight=1)
+        self.logs_tab.rowconfigure(0, weight=1)  # Log text area - expands
+        self.logs_tab.rowconfigure(1, weight=0)  # Buttons row - fixed height
+        
+        # Log frame
         log_frame = ttk.Frame(self.logs_tab)
-        log_frame.pack(fill=tk.BOTH, expand=True, padx=10, pady=10)
+        log_frame.grid(row=0, column=0, sticky="nsew", padx=10, pady=10)
+        
+        # Configure grid for log frame
+        log_frame.columnconfigure(0, weight=1)
+        log_frame.rowconfigure(0, weight=1)
         
         # Log text area
-        self.log_text = tk.Text(log_frame, wrap=tk.WORD, height=20)
-        self.log_text.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
+        self.log_text = tk.Text(log_frame, wrap=tk.WORD)
+        self.log_text.grid(row=0, column=0, sticky="nsew")
         
         # Scrollbar
         log_scrollbar = ttk.Scrollbar(log_frame, orient=tk.VERTICAL, command=self.log_text.yview)
         self.log_text.configure(yscrollcommand=log_scrollbar.set)
-        log_scrollbar.pack(side=tk.RIGHT, fill=tk.Y)
+        log_scrollbar.grid(row=0, column=1, sticky="ns")
+        
+        # Configure log text appearance
+        self.log_text.configure(font=("Consolas", 10), background="#f5f5f5")
         
         # Buttons
         log_btn_frame = ttk.Frame(self.logs_tab)
-        log_btn_frame.pack(fill=tk.X, padx=10, pady=10)
+        log_btn_frame.grid(row=1, column=0, sticky="ew", padx=10, pady=10)
         
         ttk.Button(log_btn_frame, text="Clear Logs", command=self.clear_logs).pack(side=tk.LEFT, padx=5)
         ttk.Button(log_btn_frame, text="Export Logs", command=self.export_logs).pack(side=tk.LEFT, padx=5)
+        ttk.Button(log_btn_frame, text="Refresh", command=self.refresh_logs).pack(side=tk.LEFT, padx=5)
     
     def create_status_bar(self):
         """Create status bar at the bottom of the window"""
@@ -466,6 +550,10 @@ class ApplicationGUI:
         # Status text
         ttk.Label(status_frame, textvariable=self.connection_status).pack(side=tk.LEFT, padx=5)
         
+        # User info
+        user_var = tk.StringVar(value=f"User: {os.environ.get('USERNAME', 'unknown')}")
+        ttk.Label(status_frame, textvariable=user_var).pack(side=tk.LEFT, padx=15)
+        
         # Current time
         self.time_var = tk.StringVar()
         self.update_clock()
@@ -477,9 +565,8 @@ class ApplicationGUI:
         self.time_var.set(current_time)
         self.root.after(1000, self.update_clock)
     
-    # ============================================================================
-    # ENHANCED CONNECTION METHODS
-    # ============================================================================
+    # Phần còn lại của các phương thức (test_connection, select_files, v.v.) giữ nguyên...
+    # Đây là một số phương thức thiết yếu:
     
     def test_connection(self):
         """Enhanced connection test with retry logic"""
@@ -491,7 +578,163 @@ class ApplicationGUI:
         self.log_message("Testing connection to " + self.lan_ip_var.get() + "...")
         
         threading.Thread(target=self._test_connection_thread, daemon=True).start()
-
+    
+    def select_files(self):
+        """Select and validate JSON files using real file manager"""
+        files = filedialog.askopenfilenames(
+            title="Select JSON Test Files",
+            filetypes=[("JSON files", "*.json"), ("All files", "*.*")],
+            initialdir=os.path.join(os.getcwd(), 'test_files') if os.path.exists(os.path.join(os.getcwd(), 'test_files')) else None
+        )
+        
+        if not files:
+            return
+        
+        # Clear existing selection
+        self.clear_files()
+        
+        # Validate and add files
+        valid_files = []
+        invalid_files = []
+        
+        for file_path in files:
+            try:
+                is_valid, error_msg, data = self.file_manager.validate_json_file(file_path)
+                
+                if is_valid:
+                    valid_files.append(file_path)
+                    
+                    # Store file data
+                    file_name = os.path.basename(file_path)
+                    self.file_data[file_name] = {
+                        "path": file_path,
+                        "data": data,
+                        "impacts": self.file_manager.analyze_test_impacts(data)
+                    }
+                    
+                    # Add to table
+                    file_size = os.path.getsize(file_path)
+                    size_str = f"{file_size / 1024:.1f} KB" if file_size < 1024*1024 else f"{file_size / (1024*1024):.1f} MB"
+                    test_count = self.file_manager.get_test_case_count(data)
+                    
+                    self.file_table.insert("", "end", values=(file_name, size_str, test_count, "Waiting", "", ""))
+                    
+                else:
+                    invalid_files.append((os.path.basename(file_path), error_msg))
+                    self.log_message(f"Invalid file {os.path.basename(file_path)}: {error_msg}")
+                    
+            except Exception as e:
+                invalid_files.append((os.path.basename(file_path), str(e)))
+                self.log_message(f"Error processing {os.path.basename(file_path)}: {str(e)}")
+        
+        self.selected_files = valid_files
+        self.log_message(f"Selected {len(valid_files)} valid files")
+        
+        # Show errors for invalid files
+        if invalid_files:
+            error_msg = "The following files could not be loaded:\n\n"
+            for filename, error in invalid_files:
+                error_msg += f"• {filename}: {error}\n"
+            messagebox.showerror("Invalid Files", error_msg)
+    
+    def send_files(self):
+        """Send files using real SSH connection and file transfer"""
+        if not self.selected_files:
+            messagebox.showinfo("Info", "No files selected")
+            return
+        
+        if not self.validate_connection_fields():
+            return
+        
+        # Confirm before sending
+        confirm = messagebox.askyesno(
+            "Confirm", 
+            f"Send {len(self.selected_files)} files? Files will be processed sequentially."
+        )
+        
+        if not confirm:
+            return
+        
+        # Reset retry counters
+        self.file_retry_count = {}
+        
+        # Disable buttons and start processing
+        self.send_button.configure(state=tk.DISABLED)
+        self.cancel_button.configure(state=tk.NORMAL)
+        self.processing = True
+        self.progress_var.set(0)
+        
+        threading.Thread(target=self.process_files_real, daemon=True).start()
+    
+    def log_message(self, message: str):
+        """Add a message to the log with timestamp and improved formatting"""
+        timestamp = time.strftime("%Y-%m-%d %H:%M:%S")
+        log_entry = f"[{timestamp}] {message}\n"
+        
+        # Add to GUI log
+        self.log_text.insert(tk.END, log_entry)
+        self.log_text.see(tk.END)  # Scroll to the bottom
+        
+        # Also log to file logger
+        self.logger.info(message)
+    
+    def refresh_logs(self):
+        """Refresh the logs display"""
+        # Clear existing text
+        self.log_text.delete("1.0", tk.END)
+        
+        # Load logs from file
+        log_file = "logs/app.log"
+        try:
+            if os.path.exists(log_file):
+                with open(log_file, 'r') as f:
+                    # Read the last 500 lines
+                    lines = f.readlines()[-500:]
+                    for line in lines:
+                        self.log_text.insert(tk.END, line)
+                
+                self.log_text.see(tk.END)  # Scroll to the bottom
+                self.log_message("Logs refreshed from file")
+        except Exception as e:
+            self.log_message(f"Error loading logs: {str(e)}")
+    
+    def on_closing(self):
+        """Handle application closing with cleanup"""
+        if self.processing:
+            result = messagebox.askyesnocancel(
+                "Confirm Exit", 
+                "Processing is in progress. Do you want to:\n\n"
+                "• Yes: Wait for current file to complete, then exit\n"
+                "• No: Cancel processing and exit immediately\n"
+                "• Cancel: Return to application"
+            )
+            
+            if result is None:  # Cancel
+                return
+            elif result:  # Yes - wait for completion
+                self.processing = False
+                self.log_message("Waiting for current operation to complete...")
+                # The processing thread will handle cleanup
+            else:  # No - immediate exit
+                self.processing = False
+                self.ssh_connection.disconnect()
+                self.logger.info("Application closed by user (immediate)")
+                self.root.destroy()
+                return
+        
+        # Normal close
+        try:
+            self.ssh_connection.disconnect()
+            self.logger.info(f"Application closed normally by {os.environ.get('USERNAME', 'unknown')}")
+        except Exception as e:
+            self.logger.warning(f"Error during cleanup: {e}")
+        
+        self.root.destroy()
+    
+    # ============================================================================
+    # ENHANCED CONNECTION METHODS
+    # ============================================================================
+    
     def _test_connection_thread(self):
         """Connection test thread with enhanced error handling"""
         max_attempts = AppConfig.MAX_RECONNECT_ATTEMPTS
@@ -603,328 +846,8 @@ class ApplicationGUI:
         return False
     
     # ============================================================================
-    # ENHANCED FILE PROCESSING METHODS
+    # FILE PROCESSING METHODS
     # ============================================================================
-    
-    def wait_for_result_file(self, base_filename: str, result_dir: str, upload_time: float, timeout: int = 180) -> Tuple[str, str]:
-        """
-        Wait for any new result file to appear after test file upload
-        Returns: (file_path, filename) or raises Exception
-        Enhanced to handle network interruptions and service restarts
-        """
-        start_wait = time.time()
-        check_interval = 3  # More frequent checking
-        last_log_time = 0
-        known_files = set()
-        
-        # Track whether this is a network-affecting test
-        is_network_test = "wan" in base_filename.lower() or "network" in base_filename.lower()
-        reconnect_attempts = 0
-        max_reconnect_attempts = 10 if is_network_test else 3
-        reconnect_delay = 5
-        
-        self.log_message(f"Waiting for result file in {result_dir}")
-        
-        # Get initial file list
-        success, stdout, stderr = self.ssh_connection.execute_command(f"ls -1 {result_dir}/ 2>/dev/null")
-        if success:
-            known_files = set(f for f in stdout.strip().split('\n') if f and len(f) > 3)
-            self.log_message(f"Initial file count: {len(known_files)}")
-        
-        while time.time() - start_wait < timeout and self.processing:
-            elapsed = time.time() - start_wait
-            
-            # Check SSH connection
-            if not self.ssh_connection.is_connected():
-                self.log_message(f"Connection lost. Attempting to reconnect ({reconnect_attempts+1}/{max_reconnect_attempts})...")
-                
-                if reconnect_attempts < max_reconnect_attempts:
-                    # Wait before reconnection (longer for network tests)
-                    time.sleep(reconnect_delay if reconnect_attempts == 0 else reconnect_delay * 2)
-                    
-                    # Try to reconnect
-                    success = self.ssh_connection.connect(
-                        hostname=self.lan_ip_var.get(),
-                        username=self.username_var.get(),
-                        password=self.password_var.get()
-                    )
-                    
-                    if success:
-                        self.log_message("Successfully reconnected after network interruption")
-                        reconnect_attempts = 0
-                    else:
-                        reconnect_attempts += 1
-                        continue
-                else:
-                    self.log_message("Maximum reconnection attempts reached")
-                    # Instead of failing, use a more aggressive approach to find results
-            
-            # Multiple detection strategies
-            # 1. Direct pattern search
-            pattern_cmd = f"find {result_dir} -type f -name '{base_filename}*' -o -name '*{base_filename}*' -newermt '@{int(upload_time)}' 2>/dev/null"
-            success, pattern_stdout, _ = self.ssh_connection.execute_command(pattern_cmd)
-            
-            if success and pattern_stdout.strip():
-                files = pattern_stdout.strip().split("\n")
-                file_path = files[0].strip()
-                file_name = os.path.basename(file_path)
-                
-                self.log_message(f"Found matching file via pattern search: {file_name}")
-                if self._verify_file_ready(file_path):
-                    return file_path, file_name
-            
-            # 2. Latest file check
-            latest_cmd = f"ls -lt {result_dir}/ | grep -v '^total' | head -1"
-            success, latest_stdout, _ = self.ssh_connection.execute_command(latest_cmd)
-            
-            if success and latest_stdout.strip():
-                parts = latest_stdout.strip().split()
-                if len(parts) >= 9:  # ls -lt format includes permissions, owner, etc.
-                    file_name = parts[8]
-                    file_path = f"{result_dir}/{file_name}"
-                    
-                    # Check if this is a new file
-                    if file_name not in known_files:
-                        self.log_message(f"Found new file via latest check: {file_name}")
-                        if self._verify_file_ready(file_path):
-                            return file_path, file_name
-            
-            # 3. Full directory comparison
-            success, curr_stdout, _ = self.ssh_connection.execute_command(f"ls -1 {result_dir}/ 2>/dev/null")
-            if success and curr_stdout.strip():
-                current_files = set(f for f in curr_stdout.strip().split('\n') if f and len(f) > 3)
-                new_files = current_files - known_files
-                
-                if new_files:
-                    self.log_message(f"Found {len(new_files)} new files: {', '.join(new_files)}")
-                    
-                    # Find the most relevant file
-                    target_file = None
-                    
-                    # First priority: Files containing the base filename
-                    relevant_files = [f for f in new_files if base_filename.lower() in f.lower()]
-                    if relevant_files:
-                        target_file = relevant_files[0]
-                    elif new_files:  # Second priority: Any new file
-                        target_file = list(new_files)[0]
-                    
-                    if target_file:
-                        file_path = f"{result_dir}/{target_file}"
-                        if self._verify_file_ready(file_path):
-                            self.log_message(f"[{elapsed:.0f}s] Found new result file: {target_file}")
-                            return file_path, target_file
-                
-                # Update known files list anyway
-                known_files = current_files
-            
-            # Log progress periodically
-            if elapsed - last_log_time >= 15:
-                self.log_message(f"[{elapsed:.0f}s] Still waiting for result file...")
-                last_log_time = elapsed
-            
-            time.sleep(check_interval)
-        
-        # Last resort - check application.log directly to find the result filename
-        self.log_message("Timeout approaching, checking application.log for result filename...")
-        log_cmd = f"grep -a 'Successfully wrote .* bytes to file result/' /var/log/application.log | grep -a '{base_filename}' | tail -1"
-        success, log_stdout, _ = self.ssh_connection.execute_command(log_cmd)
-        
-        if success and log_stdout.strip():
-            # Extract filename from log line like:
-            # DEBUG: Successfully wrote 127 bytes to file result/wan_create_20250529_133820.json
-            import re
-            match = re.search(r'result/([^/\s]+\.json)', log_stdout)
-            if match:
-                result_filename = match.group(1)
-                file_path = f"{result_dir}/{result_filename}"
-                self.log_message(f"Found result filename from logs: {result_filename}")
-                
-                # Check if file exists
-                if self.ssh_connection.file_exists(file_path) and self._verify_file_ready(file_path):
-                    return file_path, result_filename
-        
-        raise Exception(f"Timeout waiting for result file after {timeout} seconds")
-    
-    def _find_by_timestamp_strategy(self, base_filename: str, result_dir: str, upload_time: float) -> Optional[Tuple[str, str]]:
-        """Find files created after upload time"""
-        cmd = f"find {result_dir} -name '{base_filename}_*.json' -newermt '@{int(upload_time)}' 2>/dev/null"
-        success, stdout, stderr = self.ssh_connection.execute_command(cmd)
-        
-        if success and stdout.strip():
-            files = [f.strip() for f in stdout.strip().split('\n') if f.strip()]
-            if files:
-                # Take the latest file
-                files.sort()
-                file_path = files[-1]
-                if self._verify_file_ready(file_path):
-                    return file_path, os.path.basename(file_path)
-        return None
-
-    def _find_by_pattern_strategy(self, base_filename: str, result_dir: str, upload_time: float) -> Optional[Tuple[str, str]]:
-        """Find files by pattern and check modification time"""
-        cmd = f"ls {result_dir}/{base_filename}_*.json 2>/dev/null"
-        success, stdout, stderr = self.ssh_connection.execute_command(cmd)
-        
-        if success and stdout.strip():
-            files = [f.strip() for f in stdout.strip().split('\n') if f.strip()]
-            recent_files = []
-            
-            for file_path in files:
-                # Check modification time
-                stat_cmd = f"stat -c%Y '{file_path}' 2>/dev/null"
-                stat_success, stat_out, _ = self.ssh_connection.execute_command(stat_cmd)
-                
-                if stat_success and stat_out.strip().isdigit():
-                    mod_time = int(stat_out.strip())
-                    if mod_time >= upload_time - 5:  # 5 second buffer
-                        recent_files.append((mod_time, file_path))
-            
-            if recent_files:
-                # Sort by modification time (newest first)
-                recent_files.sort(reverse=True)
-                file_path = recent_files[0][1]
-                if self._verify_file_ready(file_path):
-                    return file_path, os.path.basename(file_path)
-        return None
-
-    def _find_latest_strategy(self, base_filename: str, result_dir: str, upload_time: float) -> Optional[Tuple[str, str]]:
-        """Find latest matching file regardless of timestamp"""
-        cmd = f"ls -t {result_dir}/{base_filename}_*.json 2>/dev/null | head -1"
-        success, stdout, stderr = self.ssh_connection.execute_command(cmd)
-        
-        if success and stdout.strip():
-            file_path = stdout.strip()
-            if self._verify_file_ready(file_path):
-                return file_path, os.path.basename(file_path)
-        return None
-
-    def _verify_file_ready(self, file_path: str, min_size: int = 10) -> bool:
-        """Verify file is ready and stable with more lenient checks"""
-        try:
-            # Check file exists
-            exists_cmd = f"test -f '{file_path}' && echo 'exists'"
-            success, stdout, _ = self.ssh_connection.execute_command(exists_cmd)
-            
-            if not (success and "exists" in stdout):
-                return False
-            
-            # Check file size
-            size1 = self.ssh_connection.get_file_size(file_path)
-            if size1 < min_size:  # Even very small files should be at least 10 bytes
-                return False
-            
-            # For network tests, be more lenient - just check existence
-            if "wan" in os.path.basename(file_path).lower() or "network" in os.path.basename(file_path).lower():
-                return True
-            
-            # Regular case - check file stability
-            time.sleep(0.5)  # Shorter wait time
-            size2 = self.ssh_connection.get_file_size(file_path)
-            
-            return size1 == size2 and size1 >= min_size
-        except Exception as e:
-            self.log_message(f"Error checking if file is ready: {str(e)}")
-            return False  # Assume not ready on error
-    
-    def select_files(self):
-        """Select and validate JSON files using real file manager"""
-        files = filedialog.askopenfilenames(
-            title="Select JSON Test Files",
-            filetypes=[("JSON files", "*.json"), ("All files", "*.*")]
-        )
-        
-        if not files:
-            return
-        
-        # Clear existing selection
-        self.clear_files()
-        
-        # Validate and add files
-        valid_files = []
-        invalid_files = []
-        
-        for file_path in files:
-            try:
-                is_valid, error_msg, data = self.file_manager.validate_json_file(file_path)
-                
-                if is_valid:
-                    valid_files.append(file_path)
-                    
-                    # Store file data
-                    file_name = os.path.basename(file_path)
-                    self.file_data[file_name] = {
-                        "path": file_path,
-                        "data": data,
-                        "impacts": self.file_manager.analyze_test_impacts(data)
-                    }
-                    
-                    # Add to table
-                    file_size = os.path.getsize(file_path)
-                    size_str = f"{file_size / 1024:.1f} KB" if file_size < 1024*1024 else f"{file_size / (1024*1024):.1f} MB"
-                    test_count = self.file_manager.get_test_case_count(data)
-                    
-                    self.file_table.insert("", "end", values=(file_name, size_str, test_count, "Waiting", "", ""))
-                    
-                else:
-                    invalid_files.append((os.path.basename(file_path), error_msg))
-                    self.log_message(f"Invalid file {os.path.basename(file_path)}: {error_msg}")
-                    
-            except Exception as e:
-                invalid_files.append((os.path.basename(file_path), str(e)))
-                self.log_message(f"Error processing {os.path.basename(file_path)}: {str(e)}")
-        
-        self.selected_files = valid_files
-        self.log_message(f"Selected {len(valid_files)} valid files")
-        
-        # Show errors for invalid files
-        if invalid_files:
-            error_msg = "The following files could not be loaded:\n\n"
-            for filename, error in invalid_files:
-                error_msg += f"• {filename}: {error}\n"
-            messagebox.showerror("Invalid Files", error_msg)
-        
-        # Show warnings for files that affect network
-        network_affecting_files = []
-        for file_name, file_info in self.file_data.items():
-            impacts = file_info["impacts"]
-            if impacts["affects_wan"] or impacts["affects_lan"]:
-                network_affecting_files.append(file_name)
-        
-        if network_affecting_files:
-            warning_msg = f"Warning: The following files may affect network connectivity:\n\n"
-            for filename in network_affecting_files:
-                warning_msg += f"• {filename}\n"
-            warning_msg += "\nConnection may be temporarily lost during testing."
-            messagebox.showwarning("Network Impact Warning", warning_msg)
-    
-    def send_files(self):
-        """Send files using real SSH connection and file transfer"""
-        if not self.selected_files:
-            messagebox.showinfo("Info", "No files selected")
-            return
-        
-        if not self.validate_connection_fields():
-            return
-        
-        # Confirm before sending
-        confirm = messagebox.askyesno(
-            "Confirm", 
-            f"Send {len(self.selected_files)} files? Files will be processed sequentially."
-        )
-        
-        if not confirm:
-            return
-        
-        # Reset retry counters
-        self.file_retry_count = {}
-        
-        # Disable buttons and start processing
-        self.send_button.configure(state=tk.DISABLED)
-        self.cancel_button.configure(state=tk.NORMAL)
-        self.processing = True
-        self.progress_var.set(0)
-        
-        threading.Thread(target=self.process_files_real, daemon=True).start()
     
     def process_files_real(self):
         """Process files using real modules with enhanced error handling"""
@@ -965,6 +888,21 @@ class ApplicationGUI:
                 self.update_file_status(i, "Sending", "", "")
                 
                 try:
+                    # Check if test affects network
+                    file_info = self.file_data.get(file_name, {})
+                    impacts = file_info.get("impacts", {})
+                    restarts_network = impacts.get("restarts_network", False)
+                    affects_network = impacts.get("affects_wan", False) or impacts.get("affects_lan", False)
+                    
+                    if restarts_network:
+                        self.log_message(f"Warning: {file_name} contains network restart operations. Extended timeout will be used.")
+                        # Show warning to user
+                        self.root.after(0, lambda: messagebox.showwarning(
+                            "Network Restart Test", 
+                            f"The test '{file_name}' will restart network services on the device.\n\n"
+                            "Connection may be lost temporarily. The application will attempt to reconnect automatically."
+                        ))
+                    
                     # 3. Upload file
                     remote_path = os.path.join(self.config_path_var.get(), file_name)
                     upload_success = self.ssh_connection.upload_file(file_path, remote_path)
@@ -975,12 +913,16 @@ class ApplicationGUI:
                     self.log_message(f"File {file_name} uploaded successfully")
                     self.update_file_status(i, "Testing", "", "")
                     
-                    # 4. Wait for result file with enhanced monitoring
+                    # 4. Wait for result file with enhanced timeout for network tests
+                    timeout = AppConfig.DEFAULT_TIMEOUT
+                    if affects_network:
+                        timeout = max(300, timeout * 2)  # At least 5 minutes for network tests
+                    
                     result_remote_path, actual_result_filename = self.wait_for_result_file(
                         base_filename=os.path.splitext(file_name)[0],
                         result_dir=self.result_path_var.get(),
                         upload_time=time.time(),
-                        timeout=AppConfig.DEFAULT_TIMEOUT
+                        timeout=timeout
                     )
                     
                     # 5. Download result
@@ -1085,8 +1027,314 @@ class ApplicationGUI:
             # Reload history
             self.root.after(0, self.load_history)
     
+    def wait_for_result_file(self, base_filename: str, result_dir: str, upload_time: float, timeout: int = 300) -> Tuple[str, str]:
+        """
+        Wait for any new result file to appear after test file upload
+        Enhanced to handle network restart operations and ensure most recent file is selected
+        """
+        start_wait = time.time()
+        check_interval = 3
+        last_log_time = 0
+        known_files = set()
+        
+        # Helper function to find the best match from a list of files
+        def find_best_result_file(files_list):
+            """Find the best matching result file based on name and timestamp"""
+            if not files_list:
+                return None
+            
+            # Convert to list if it's a set
+            if isinstance(files_list, set):
+                files_list = list(files_list)
+            
+            # Filter for JSON files that match our base filename
+            matches = [f for f in files_list if f.lower().endswith('.json') and base_filename.lower() in f.lower()]
+            
+            if not matches:
+                self.log_message(f"No matching result files found")
+                return None
+            
+            # Extract date and time information using regex
+            import re
+            pattern = re.compile(r'_(\d{8})_(\d{6})\.json$')  # Format: *_YYYYMMDD_HHMMSS.json
+            
+            # Create list of tuples: (timestamp_value, filename)
+            timestamped_files = []
+            
+            for fname in matches:
+                match = pattern.search(fname)
+                if match:
+                    date_str = match.group(1)
+                    time_str = match.group(2)
+                    # Convert to sortable integer
+                    timestamp_value = int(date_str + time_str)
+                    timestamped_files.append((timestamp_value, fname))
+            
+            # If no timestamps found, return first match as fallback
+            if not timestamped_files:
+                self.log_message(f"Warning: No valid timestamps in filenames")
+                return matches[0]
+            
+            # Sort by timestamp (newest first)
+            timestamped_files.sort(reverse=True)
+            
+            # Return the most recent file (just log the final selected file)
+            best_file = timestamped_files[0][1]
+            return best_file
+        
+        # Determine if this is a network-affecting test
+        is_network_test = any(keyword in base_filename.lower() for keyword in ["wan", "network", "interface", "restart", "reset"])
+        
+        # Increase timeout and retry policy for network tests
+        if is_network_test:
+            self.log_message(f"Network-affecting test detected: {base_filename}. Using extended timeout and retry policy.")
+            max_reconnect_attempts = 12
+            reconnect_delay = 10
+            timeout = max(timeout, 300)  # At least 5 minutes for network tests
+        else:
+            max_reconnect_attempts = 3
+            reconnect_delay = 5
+        
+        reconnect_attempts = 0
+        connection_lost_time = 0
+        
+        self.log_message(f"Waiting for result file in {result_dir} (timeout: {timeout}s)")
+        
+        # Initial file listing
+        try:
+            success, stdout, stderr = self.ssh_connection.execute_command(f"ls -1 {result_dir}/ 2>/dev/null")
+            if success:
+                known_files = set(f for f in stdout.strip().split('\n') if f and len(f) > 3)
+                self.log_message(f"Initial file count: {len(known_files)}")
+        except Exception as e:
+            self.log_message(f"Could not get initial file listing: {str(e)}")
+        
+        # Main wait loop
+        while time.time() - start_wait < timeout:
+            elapsed = time.time() - start_wait
+            
+            # Check connection state
+            if not self.ssh_connection.is_connected():
+                # Connection lost - might be due to network restart
+                if connection_lost_time == 0:
+                    connection_lost_time = time.time()
+                    self.log_message("Connection lost - likely due to network restart on device")
+                
+                # Check if we've waited enough time for network to stabilize
+                wait_since_disconnect = time.time() - connection_lost_time
+                if wait_since_disconnect < reconnect_delay:
+                    # Too soon to retry - wait longer
+                    if elapsed - last_log_time >= 10:
+                        self.log_message(f"[{elapsed:.0f}s] Waiting {reconnect_delay-wait_since_disconnect:.0f}s before reconnection attempt...")
+                        last_log_time = elapsed
+                    time.sleep(2)
+                    continue
+                
+                # Try to reconnect
+                if reconnect_attempts < max_reconnect_attempts:
+                    reconnect_attempts += 1
+                    self.log_message(f"Attempting to reconnect ({reconnect_attempts}/{max_reconnect_attempts})...")
+                    
+                    try:
+                        success = self.ssh_connection.connect(
+                            hostname=self.lan_ip_var.get(),
+                            username=self.username_var.get(),
+                            password=self.password_var.get(),
+                            timeout=15
+                        )
+                        
+                        if success:
+                            self.log_message("Successfully reconnected!")
+                            connection_lost_time = 0
+                            reconnect_delay = max(5, reconnect_delay - 5)  # Gradually reduce delay if successful
+                            
+                            # After reconnect, refresh known files
+                            try:
+                                success, stdout, stderr = self.ssh_connection.execute_command(f"ls -1 {result_dir}/ 2>/dev/null")
+                                if success:
+                                    current_files = set(f for f in stdout.strip().split('\n') if f and len(f) > 3)
+                                    new_files = current_files - known_files
+                                    
+                                    if new_files:
+                                        self.log_message(f"Found {len(new_files)} new files after reconnect: {', '.join(list(new_files)[:3])}")
+                                        
+                                        # Use helper function to find the best result file
+                                        best_file = find_best_result_file(new_files)
+                                        if best_file:
+                                            file_path = f"{result_dir}/{best_file}"
+                                            if self._verify_file_ready(file_path):
+                                                return file_path, best_file
+                                    
+                                    known_files = current_files
+                            except Exception as e:
+                                self.log_message(f"Error listing files after reconnect: {str(e)}")
+                        else:
+                            reconnect_delay = min(30, reconnect_delay + 5)  # Increase delay on failure
+                            self.log_message(f"Reconnection failed. Next attempt in {reconnect_delay}s...")
+                            time.sleep(reconnect_delay)
+                            continue
+                    except Exception as e:
+                        reconnect_delay = min(30, reconnect_delay + 5)
+                        self.log_message(f"Reconnection error: {str(e)}. Next attempt in {reconnect_delay}s...")
+                        time.sleep(reconnect_delay)
+                        continue
+                else:
+                    # Max retries exceeded - use file pattern matching with fixed patterns
+                    self.log_message("Maximum reconnection attempts reached. Attempting alternative result detection methods.")
+                    # Continue to try other methods
+            
+            # Connection is good, try detection methods
+            try:
+                # Method 1: Get newest files with our base name using timestamp-sorting find command
+                today_date = time.strftime("%Y%m%d")
+                pattern_cmd = (
+                    f"find {result_dir} -type f -name '*{base_filename}*' -o -name '{base_filename}*' | "
+                    f"sort -r | head -3"
+                )
+                success, pattern_stdout, _ = self.ssh_connection.execute_command(pattern_cmd)
+                
+                if success and pattern_stdout.strip():
+                    files = pattern_stdout.strip().split('\n')
+                    
+                    self.log_message(f"Found {len(files)} files via pattern search")
+                    best_file = find_best_result_file([os.path.basename(f) for f in files])
+                    
+                    if best_file:
+                        file_path = f"{result_dir}/{best_file}"
+                        if self._verify_file_ready(file_path):
+                            return file_path, best_file
+                
+                # Method 2: Latest modified file check
+                latest_cmd = (
+                    f"find {result_dir} -name '*.json' -type f -printf '%T@ %p\\n' | "
+                    f"sort -nr | head -1 | cut -d' ' -f2-"
+                )
+                success, latest_stdout, _ = self.ssh_connection.execute_command(latest_cmd)
+                
+                if success and latest_stdout.strip():
+                    file_path = latest_stdout.strip()
+                    file_name = os.path.basename(file_path)
+                    
+                    # Check if this is a new file
+                    if file_name not in known_files:
+                        self.log_message(f"Found newest file via modification time: {file_name}")
+                        if base_filename.lower() in file_name.lower() and self._verify_file_ready(file_path):
+                            return file_path, file_name
+                
+                # Method 3: Full directory comparison
+                success, curr_stdout, _ = self.ssh_connection.execute_command(f"ls -1 {result_dir}/ 2>/dev/null")
+                if success and curr_stdout.strip():
+                    current_files = set(f for f in curr_stdout.strip().split('\n') if f and len(f) > 3)
+                    new_files = current_files - known_files
+                    
+                    if new_files:
+                        self.log_message(f"Found {len(new_files)} new files in directory comparison")
+                        best_file = find_best_result_file(new_files)
+                        
+                        if best_file:
+                            file_path = f"{result_dir}/{best_file}"
+                            if self._verify_file_ready(file_path):
+                                return file_path, best_file
+                    
+                    known_files = current_files
+                
+            except Exception as e:
+                self.log_message(f"Error checking for result file: {str(e)}")
+            
+            # Log progress periodically
+            if elapsed - last_log_time >= 15:
+                self.log_message(f"[{elapsed:.0f}s] Still waiting for result file...")
+                last_log_time = elapsed
+            
+            # Check if processing was cancelled
+            if not self.processing:
+                raise Exception("Processing cancelled by user")
+            
+            time.sleep(check_interval)
+        
+        # Timeout exceeded - try one last method
+        self.log_message("Timeout exceeded. Checking logs and using more aggressive methods.")
+        
+        try:
+            # Check syslog/journal for hints about result file
+            log_cmd = f"grep -a 'Result file.*{base_filename}' /var/log/messages /var/log/syslog /tmp/syslog.log /var/log/application.log 2>/dev/null"
+            success, log_stdout, _ = self.ssh_connection.execute_command(log_cmd)
+            
+            if success and log_stdout.strip():
+                import re
+                match = re.search(r'[\'"]([^\'"/]+\.json)[\'"]', log_stdout)
+                if match:
+                    result_filename = match.group(1)
+                    file_path = f"{result_dir}/{result_filename}"
+                    self.log_message(f"Found result filename from logs: {result_filename}")
+                    
+                    # Check if file exists and is readable
+                    if self.ssh_connection.file_exists(file_path):
+                        return file_path, result_filename
+            
+            # Find all JSON files in result directory and sort by modification time
+            find_cmd = f"find {result_dir} -name '*.json' -type f -newermt @{int(upload_time)} -printf '%T@ %p\\n' | sort -nr"
+            success, find_stdout, _ = self.ssh_connection.execute_command(find_cmd)
+            
+            if success and find_stdout.strip():
+                lines = find_stdout.strip().split('\n')
+                files = [line.split(' ', 1)[1] for line in lines if ' ' in line]
+                
+                self.log_message(f"Found {len(files)} files created after upload time")
+                
+                if files:
+                    # Get all filenames and find the best match
+                    filenames = [os.path.basename(f) for f in files]
+                    best_file = find_best_result_file(filenames)
+                    
+                    if best_file:
+                        for file_path in files:
+                            if os.path.basename(file_path) == best_file:
+                                self.log_message(f"Selected best result file from last-chance search: {best_file}")
+                                return file_path, best_file
+                    
+                    # If we couldn't find a best match, use the newest file
+                    newest_file = files[0]
+                    newest_filename = os.path.basename(newest_file)
+                    self.log_message(f"Using newest file from last-chance search: {newest_filename}")
+                    return newest_file, newest_filename
+        
+        except Exception as e:
+            self.log_message(f"Final check failed: {str(e)}")
+        
+        # If we reach here, we've truly failed
+        raise Exception(f"Timeout waiting for result file after {timeout} seconds. Test may still be running.")
+        
+    def _verify_file_ready(self, file_path: str, min_size: int = 10) -> bool:
+        """Verify file is ready and stable with more lenient checks"""
+        try:
+            # Check file exists
+            exists_cmd = f"test -f '{file_path}' && echo 'exists'"
+            success, stdout, _ = self.ssh_connection.execute_command(exists_cmd)
+            
+            if not (success and "exists" in stdout):
+                return False
+            
+            # Check file size
+            size1 = self.ssh_connection.get_file_size(file_path)
+            if size1 < min_size:  # Even very small files should be at least 10 bytes
+                return False
+            
+            # For network tests, be more lenient - just check existence
+            if "wan" in os.path.basename(file_path).lower() or "network" in os.path.basename(file_path).lower():
+                return True
+            
+            # Regular case - check file stability
+            time.sleep(0.5)  # Shorter wait time
+            size2 = self.ssh_connection.get_file_size(file_path)
+            
+            return size1 == size2 and size1 >= min_size
+        except Exception as e:
+            self.log_message(f"Error checking if file is ready: {str(e)}")
+            return False  # Assume not ready on error
+    
     # ============================================================================
-    # ENHANCED ERROR HANDLING METHODS
+    # ERROR HANDLING METHODS
     # ============================================================================
     
     def _should_retry_on_error(self, error: Exception, file_name: str) -> bool:
@@ -1159,48 +1407,192 @@ class ApplicationGUI:
         except Exception as db_error:
             self.log_message(f"Failed to save error to database: {str(db_error)}")
     
-    def convert_result_format(self, openwrt_result):
+    # ============================================================================
+    # RESULT HANDLING METHODS
+    # ============================================================================
+        
+    def convert_result_format(self, openwrt_result, input_file_name=None):
         """Convert OpenWrt result format to our expected format"""
         try:
             converted_results = []
             
-            # Convert summary info
-            summary = openwrt_result.get("summary", {})
-            total_tests = summary.get("total_test_cases", 0)
-            passed = summary.get("passed", 0)
-            failed = summary.get("failed", 0)
+            # Cố gắng đọc thông tin service và action từ file gốc
+            service_name = "unknown"
+            action_name = ""
             
-            # Convert failed_by_service to individual test results
+            # Đọc từ file gốc
+            if input_file_name and os.path.exists(input_file_name):
+                try:
+                    with open(input_file_name, 'r') as f:
+                        original_data = json.load(f)
+                    
+                    if "data" in original_data and "test_cases" in original_data["data"]:
+                        test_cases = original_data["data"]["test_cases"]
+                        if test_cases and isinstance(test_cases, list) and len(test_cases) > 0:
+                            first_test = test_cases[0]
+                            service_name = first_test.get("service", "unknown")
+                            action_name = first_test.get("action", "")
+                            self.log_message(f"Extracted from test file: service={service_name}, action={action_name}")
+                except Exception as read_error:
+                    self.log_message(f"Could not read original file data: {str(read_error)}")
+            
+            # Nếu không đọc được từ nội dung file, trích xuất từ tên file
+            if service_name == "unknown" and input_file_name:
+                filename = os.path.basename(input_file_name)
+                base_name = os.path.splitext(filename)[0]
+                parts = base_name.split('_')
+                if len(parts) > 0:
+                    service_name = parts[0]
+                    if len(parts) > 1:
+                        action_name = '_'.join(parts[1:])
+                        # Loại bỏ timestamp nếu có
+                        if action_name and any(c.isdigit() for c in action_name):
+                            digits_index = -1
+                            for i, c in enumerate(action_name):
+                                if c.isdigit():
+                                    digits_index = i
+                                    break
+                            if digits_index > 0:
+                                action_name = action_name[:digits_index].rstrip('_')
+                
+                self.log_message(f"Extracted from filename: service={service_name}, action={action_name}")
+            
+            # Xử lý các test case fail theo service và action
             failed_by_service = openwrt_result.get("failed_by_service", {})
+            for service, tests in failed_by_service.items():
+                for test in tests:
+                    test_service = test.get("service", service)
+                    test_action = test.get("action", "")
+                    message = test.get("message", f"{test_service} {test_action} failed")
+                    
+                    # Chỉ thêm vào kết quả nếu phù hợp với service và action của file gốc
+                    # hoặc nếu service_name là "unknown" (không biết service nào là đúng)
+                    if service_name == "unknown" or test_service == service_name:
+                        converted_results.append({
+                            "service": test_service,
+                            "action": test_action,
+                            "status": "fail",
+                            "details": message,
+                            "execution_time": test.get("execution_time_ms", 0) / 1000.0
+                        })
             
-            test_id = 0
-            for service, failed_tests in failed_by_service.items():
-                for test in failed_tests:
+            # Lấy thông tin từ summary
+            summary = openwrt_result.get("summary", {})
+            pass_count = summary.get("passed", 0)
+            fail_count = summary.get("failed", 0)
+            failed_services = summary.get("failed_services", [])
+            
+            # Xử lý các test case pass
+            if pass_count > 0:
+                if service_name != "unknown" and service_name not in failed_services:
+                    status_text = "completed successfully"
+                    details = f"{service_name} {action_name} {status_text}"
+                    
                     converted_results.append({
-                        "service": test.get("service", service),
-                        "action": test.get("action", ""),
-                        "status": "pass" if test.get("status", False) else "fail",
-                        "details": test.get("message", ""),
-                        "execution_time": test.get("execution_time_ms", 0) / 1000.0
-                    })
-                    test_id += 1
-            
-            # Add passed tests (we need to infer these since they're not listed)
-            for i in range(passed):
-                if i == 0:  # Assume first test is ping which passed
-                    converted_results.insert(0, {
-                        "service": "ping",
-                        "action": "",
+                        "service": service_name,
+                        "action": action_name,
                         "status": "pass",
-                        "details": "Ping test completed successfully",
-                        "execution_time": 8.0  # From the log
+                        "details": details,
+                        "execution_time": summary.get("total_duration_ms", 0) / 1000.0
                     })
             
+            # Nếu không có kết quả nào, tạo một kết quả mặc định
+            if not converted_results:
+                # Đảm bảo service và action không phải là unknown nếu có thể
+                status = "pass" if fail_count == 0 else "fail"
+                status_text = "completed successfully" if status == "pass" else "failed"
+                details = f"{service_name} {action_name} {status_text}"
+                
+                converted_results.append({
+                    "service": service_name,
+                    "action": action_name,
+                    "status": status,
+                    "details": details,
+                    "execution_time": 0.0
+                })
+            
+            # Hiển thị kết quả đã chuyển đổi để debug
+            for result in converted_results:
+                self.log_message(f"Converted result: {result['service']}.{result['action']} = {result['status']}")
+                
             return converted_results
             
         except Exception as e:
-            self.logger.error(f"Error converting result format: {e}")
-            return []
+            import traceback
+            self.log_message(f"Error in convert_result_format: {str(e)}")
+            self.log_message(traceback.format_exc())
+            
+            # Fallback
+            return [{
+                "service": "unknown",
+                "action": "",
+                "status": "error",
+                "details": f"Error processing result: {str(e)}",
+                "execution_time": 0.0
+            }]
+        
+    def determine_overall_result(self, result_data):
+        """Determine overall result from test result data"""
+        if "summary" in result_data:
+            summary = result_data["summary"]
+            total = summary.get("total_test_cases", 0)
+            passed = summary.get("passed", 0)
+            failed = summary.get("failed", 0)
+            
+            if total == passed:
+                return "Pass"
+            elif passed == 0:
+                return "Fail"
+            else:
+                return f"Partial ({passed}/{total})"
+        
+        return "Unknown"
+    
+    def update_file_status(self, file_index: int, status: str, result: str = "", time_str: str = ""):
+        """Update file status in the table"""
+        try:
+            items = self.file_table.get_children()
+            if file_index < len(items):
+                item_id = items[file_index]
+                current_values = list(self.file_table.item(item_id)["values"])
+                current_values[3] = status  # Status column
+                if result:
+                    current_values[4] = result  # Result column
+                if time_str:
+                    current_values[5] = time_str  # Time column
+                
+                self.root.after(0, lambda: self.file_table.item(item_id, values=tuple(current_values)))
+        except Exception as e:
+            self.logger.error(f"Error updating file status: {e}")
+    
+    def update_detail_table_with_results(self, file_index: int, result_data: Dict):
+        """Update detail table with test results if the file is currently selected"""
+        selection = self.file_table.selection()
+        if not selection:
+            return
+        
+        selected_index = self.file_table.index(selection[0])
+        if selected_index != file_index:
+            return  # Different file is selected
+        
+        test_results = result_data.get("test_results", [])
+        detail_items = self.detail_table.get_children()
+        
+        # Update each test case result
+        for i, result in enumerate(test_results):
+            if i < len(detail_items):
+                item_id = detail_items[i]
+                current_values = list(self.detail_table.item(item_id)["values"])
+                
+                # Update status and details
+                current_values[3] = result.get("status", "Unknown")  # Status column
+                current_values[4] = result.get("details", "No details")  # Details column
+                
+                self.root.after(0, lambda id=item_id, vals=current_values: self.detail_table.item(id, values=tuple(vals)))
+    
+    # ============================================================================
+    # UTILITY AND UI METHODS
+    # ============================================================================
     
     def cancel_processing(self):
         """Cancel the file processing"""
@@ -1247,31 +1639,6 @@ class ApplicationGUI:
                 
                 self.detail_table.insert("", "end", values=(service, action, params_str, status, details))
     
-    def update_detail_table_with_results(self, file_index: int, result_data: Dict):
-        """Update detail table with test results if the file is currently selected"""
-        selection = self.file_table.selection()
-        if not selection:
-            return
-        
-        selected_index = self.file_table.index(selection[0])
-        if selected_index != file_index:
-            return  # Different file is selected
-        
-        test_results = result_data.get("test_results", [])
-        detail_items = self.detail_table.get_children()
-        
-        # Update each test case result
-        for i, result in enumerate(test_results):
-            if i < len(detail_items):
-                item_id = detail_items[i]
-                current_values = list(self.detail_table.item(item_id)["values"])
-                
-                # Update status and details
-                current_values[3] = result.get("status", "Unknown")  # Status column
-                current_values[4] = result.get("details", "No details")  # Details column
-                
-                self.root.after(0, lambda id=item_id, vals=current_values: self.detail_table.item(id, values=tuple(vals)))
-    
     def format_params(self, params):
         """Format parameters as a readable string"""
         if not params:
@@ -1288,72 +1655,64 @@ class ApplicationGUI:
         
         return ", ".join(parts)
     
-    def determine_overall_result(self, result_data):
-        """Determine overall result from test result data"""
-        if "summary" in result_data:
-            summary = result_data["summary"]
-            total = summary.get("total_test_cases", 0)
-            passed = summary.get("passed", 0)
-            failed = summary.get("failed", 0)
-            
-            if total == passed:
-                return "Pass"
-            elif passed == 0:
-                return "Fail"
-            else:
-                return f"Partial ({passed}/{total})"
+    def clear_files(self):
+        """Clear selected files"""
+        self.selected_files = []
+        self.file_data = {}
+        self.file_retry_count = {}
         
-        return "Unknown"
+        for item in self.file_table.get_children():
+            self.file_table.delete(item)
+        
+        for item in self.detail_table.get_children():
+            self.detail_table.delete(item)
+        
+        self.log_message("File selection cleared")
     
-    def update_file_status(self, file_index: int, status: str, result: str = "", time_str: str = ""):
-        """Update file status in the table"""
-        try:
-            items = self.file_table.get_children()
-            if file_index < len(items):
-                item_id = items[file_index]
-                current_values = list(self.file_table.item(item_id)["values"])
-                current_values[3] = status  # Status column
-                if result:
-                    current_values[4] = result  # Result column
-                if time_str:
-                    current_values[5] = time_str  # Time column
-                
-                self.root.after(0, lambda: self.file_table.item(item_id, values=tuple(current_values)))
-        except Exception as e:
-            self.logger.error(f"Error updating file status: {e}")
+    def validate_connection_fields(self) -> bool:
+        """Validate connection fields with enhanced error messages"""
+        validation_errors = []
+        
+        if not self.lan_ip_var.get().strip():
+            validation_errors.append("LAN IP address is required")
+        
+        if not self.username_var.get().strip():
+            validation_errors.append("Username is required")
+        
+        if not self.password_var.get():
+            validation_errors.append("Password is required")
+        
+        if not self.config_path_var.get().strip():
+            validation_errors.append("Config path is required")
+        
+        if not self.result_path_var.get().strip():
+            validation_errors.append("Result path is required")
+        
+        # Validate IP format (basic check)
+        lan_ip = self.lan_ip_var.get().strip()
+        if lan_ip:
+            parts = lan_ip.split('.')
+            if len(parts) != 4 or not all(part.isdigit() and 0 <= int(part) <= 255 for part in parts):
+                validation_errors.append("LAN IP address format is invalid")
+        
+        if validation_errors:
+            error_msg = "Please fix the following errors:\n\n" + "\n".join(f"• {error}" for error in validation_errors)
+            messagebox.showerror("Validation Error", error_msg)
+            return False
+        
+        return True
     
-    def save_config(self):
-        """Save configuration using database"""
-        try:
-            self.database.save_setting("lan_ip", self.lan_ip_var.get())
-            self.database.save_setting("wan_ip", self.wan_ip_var.get())
-            self.database.save_setting("username", self.username_var.get())
-            self.database.save_setting("config_path", self.config_path_var.get())
-            self.database.save_setting("result_path", self.result_path_var.get())
-            
-            self.log_message("Configuration saved successfully")
-            messagebox.showinfo("Success", "Configuration saved successfully")
-            
-        except Exception as e:
-            error_msg = f"Failed to save configuration: {str(e)}"
-            self.log_message(error_msg)
-            messagebox.showerror("Error", error_msg)
-    
-    def load_config(self):
-        """Load configuration from database"""
-        try:
-            self.lan_ip_var.set(self.database.get_setting("lan_ip", "192.168.88.1"))
-            self.wan_ip_var.set(self.database.get_setting("wan_ip", ""))
-            self.username_var.set(self.database.get_setting("username", "root"))
-            self.config_path_var.set(self.database.get_setting("config_path", "/root/config"))
-            self.result_path_var.set(self.database.get_setting("result_path", "/root/result"))
-            
-            self.log_message("Configuration loaded successfully")
-            
-        except Exception as e:
-            error_msg = f"Failed to load configuration: {str(e)}"
-            self.log_message(error_msg)
-            messagebox.showerror("Error", error_msg)
+    def update_status_circle(self, color: str):
+        """Update connection status circle color with enhanced visual feedback"""
+        color_mapping = {
+            "green": "#00AA00",    # Success
+            "yellow": "#FFB000",   # Warning/Connecting
+            "red": "#CC0000",      # Error
+            "gray": "#808080"      # Disabled
+        }
+        
+        actual_color = color_mapping.get(color, color)
+        self.status_canvas.itemconfig(self.status_circle, fill=actual_color)
     
     def load_history(self):
         """Load history from database"""
@@ -1433,116 +1792,41 @@ class ApplicationGUI:
         
         threading.Thread(target=_check_folders, daemon=True).start()
     
-    # ============================================================================
-    # UTILITY METHODS
-    # ============================================================================
-    
-    def clear_files(self):
-        """Clear selected files"""
-        self.selected_files = []
-        self.file_data = {}
-        self.file_retry_count = {}
-        
-        for item in self.file_table.get_children():
-            self.file_table.delete(item)
-        
-        for item in self.detail_table.get_children():
-            self.detail_table.delete(item)
-        
-        self.log_message("File selection cleared")
-    
-    def validate_connection_fields(self) -> bool:
-        """Validate connection fields with enhanced error messages"""
-        validation_errors = []
-        
-        if not self.lan_ip_var.get().strip():
-            validation_errors.append("LAN IP address is required")
-        
-        if not self.username_var.get().strip():
-            validation_errors.append("Username is required")
-        
-        if not self.password_var.get():
-            validation_errors.append("Password is required")
-        
-        if not self.config_path_var.get().strip():
-            validation_errors.append("Config path is required")
-        
-        if not self.result_path_var.get().strip():
-            validation_errors.append("Result path is required")
-        
-        # Validate IP format (basic check)
-        lan_ip = self.lan_ip_var.get().strip()
-        if lan_ip:
-            parts = lan_ip.split('.')
-            if len(parts) != 4 or not all(part.isdigit() and 0 <= int(part) <= 255 for part in parts):
-                validation_errors.append("LAN IP address format is invalid")
-        
-        if validation_errors:
-            error_msg = "Please fix the following errors:\n\n" + "\n".join(f"• {error}" for error in validation_errors)
-            messagebox.showerror("Validation Error", error_msg)
-            return False
-        
-        return True
-    
-    def update_status_circle(self, color: str):
-        """Update connection status circle color with enhanced visual feedback"""
-        color_mapping = {
-            "green": "#00AA00",    # Success
-            "yellow": "#FFB000",   # Warning/Connecting
-            "red": "#CC0000",      # Error
-            "gray": "#808080"      # Disabled
-        }
-        
-        actual_color = color_mapping.get(color, color)
-        self.status_canvas.itemconfig(self.status_circle, fill=actual_color)
-    
-    def log_message(self, message: str):
-        """Add a message to the log with timestamp and improved formatting"""
-        timestamp = time.strftime("%Y-%m-%d %H:%M:%S")
-        log_entry = f"[{timestamp}] {message}\n"
-        
-        # Add to GUI log
-        self.log_text.insert(tk.END, log_entry)
-        self.log_text.see(tk.END)  # Scroll to the bottom
-        
-        # Also log to file logger
-        self.logger.info(message)
-    
-    def on_closing(self):
-        """Handle application closing with cleanup"""
-        if self.processing:
-            result = messagebox.askyesnocancel(
-                "Confirm Exit", 
-                "Processing is in progress. Do you want to:\n\n"
-                "• Yes: Wait for current file to complete, then exit\n"
-                "• No: Cancel processing and exit immediately\n"
-                "• Cancel: Return to application"
-            )
-            
-            if result is None:  # Cancel
-                return
-            elif result:  # Yes - wait for completion
-                self.processing = False
-                self.log_message("Waiting for current operation to complete...")
-                # The processing thread will handle cleanup
-            else:  # No - immediate exit
-                self.processing = False
-                self.ssh_connection.disconnect()
-                self.logger.info("Application closed by user (immediate)")
-                self.root.destroy()
-                return
-        
-        # Normal close
+    def save_config(self):
+        """Save configuration using database"""
         try:
-            self.ssh_connection.disconnect()
-            self.logger.info("Application closed normally by juno-kyojin")
+            self.database.save_setting("lan_ip", self.lan_ip_var.get())
+            self.database.save_setting("wan_ip", self.wan_ip_var.get())
+            self.database.save_setting("username", self.username_var.get())
+            self.database.save_setting("config_path", self.config_path_var.get())
+            self.database.save_setting("result_path", self.result_path_var.get())
+            
+            self.log_message("Configuration saved successfully")
+            messagebox.showinfo("Success", "Configuration saved successfully")
+            
         except Exception as e:
-            self.logger.warning(f"Error during cleanup: {e}")
-        
-        self.root.destroy()
+            error_msg = f"Failed to save configuration: {str(e)}"
+            self.log_message(error_msg)
+            messagebox.showerror("Error", error_msg)
+    
+    def load_config(self):
+        """Load configuration from database"""
+        try:
+            self.lan_ip_var.set(self.database.get_setting("lan_ip", "192.168.88.1"))
+            self.wan_ip_var.set(self.database.get_setting("wan_ip", ""))
+            self.username_var.set(self.database.get_setting("username", "root"))
+            self.config_path_var.set(self.database.get_setting("config_path", "/root/config"))
+            self.result_path_var.set(self.database.get_setting("result_path", "/root/result"))
+            
+            self.log_message("Configuration loaded successfully")
+            
+        except Exception as e:
+            error_msg = f"Failed to load configuration: {str(e)}"
+            self.log_message(error_msg)
+            messagebox.showerror("Error", error_msg)
     
     # ============================================================================
-    # PLACEHOLDER METHODS FOR FUTURE IMPLEMENTATION
+    # ADDITIONAL UI METHODS
     # ============================================================================
     
     def export_results(self):
@@ -1554,8 +1838,20 @@ class ApplicationGUI:
         )
         if filename:
             try:
-                # TODO: Implement actual CSV export
-                self.log_message(f"Exporting results to {filename}...")
+                # Implement CSV export of currently loaded results
+                with open(filename, 'w', newline='') as f:
+                    import csv
+                    writer = csv.writer(f)
+                    
+                    # Header row
+                    writer.writerow(["Filename", "Size", "Tests", "Status", "Result", "Time"])
+                    
+                    # Data rows
+                    for item_id in self.file_table.get_children():
+                        values = self.file_table.item(item_id)["values"]
+                        writer.writerow(values)
+                
+                self.log_message(f"Results exported to {filename}")
                 messagebox.showinfo("Export", f"Results exported to {filename}")
             except Exception as e:
                 messagebox.showerror("Export Error", f"Failed to export results: {str(e)}")
@@ -1563,6 +1859,7 @@ class ApplicationGUI:
     def refresh_view(self):
         """Refresh all views"""
         self.load_history()
+        self.refresh_logs()
         self.log_message("View refreshed")
     
     def clear_history(self):
@@ -1573,10 +1870,10 @@ class ApplicationGUI:
         )
         if confirm:
             try:
-                # TODO: Add database method to clear history
+                self.database.clear_history()
                 for item in self.history_table.get_children():
                     self.history_table.delete(item)
-                self.log_message("History cleared from view")
+                self.log_message("History cleared")
                 messagebox.showinfo("Success", "History cleared successfully")
             except Exception as e:
                 messagebox.showerror("Error", f"Failed to clear history: {str(e)}")
@@ -1587,8 +1884,56 @@ class ApplicationGUI:
         status_filter = self.status_combo.get()
         
         self.log_message(f"Applying history filter: Date={date_filter}, Status={status_filter}")
-        # TODO: Implement actual filtering logic
-        messagebox.showinfo("Filter", f"Applied filter: {date_filter}, {status_filter}")
+        
+        try:
+            # Clear existing history
+            for item in self.history_table.get_children():
+                self.history_table.delete(item)
+            
+            # Convert filter to SQL parameters
+            date_clause = ""
+            if date_filter == "Today":
+                date_clause = "WHERE DATE(timestamp) = DATE('now')"
+            elif date_filter == "Last 7 Days":
+                date_clause = "WHERE timestamp >= DATE('now', '-7 days')"
+            elif date_filter == "Last 30 Days":
+                date_clause = "WHERE timestamp >= DATE('now', '-30 days')"
+            
+            status_clause = ""
+            if status_filter != "All":
+                if date_clause:
+                    status_clause = f" AND overall_result LIKE '%{status_filter}%'"
+                else:
+                    status_clause = f"WHERE overall_result LIKE '%{status_filter}%'"
+            
+            # Load filtered history
+            history_data = self.database.get_filtered_history(date_clause + status_clause, 100)
+            
+            for record in history_data:
+                timestamp = record["timestamp"]
+                if " " in timestamp:
+                    date, time_str = timestamp.split(" ", 1)
+                else:
+                    date = timestamp
+                    time_str = ""
+                
+                details = f"Execution time: {record['execution_time']:.1f}s" if record["execution_time"] else ""
+                if record["affects_wan"] or record["affects_lan"]:
+                    details += " (Network affecting)"
+                
+                self.history_table.insert("", "end", values=(
+                    date,
+                    time_str,
+                    record["file_name"],
+                    record["test_count"],
+                    record["overall_result"] or "Unknown",
+                    details
+                ))
+            
+            self.log_message(f"Applied filter: {len(self.history_table.get_children())} records found")
+            
+        except Exception as e:
+            self.log_message(f"Error applying filter: {str(e)}")
     
     def clear_history_filter(self):
         """Clear history filters"""
@@ -1606,11 +1951,55 @@ class ApplicationGUI:
         )
         if filename:
             try:
-                # TODO: Implement actual history CSV export
-                self.log_message(f"Exporting history to {filename}...")
+                # Implement CSV export of history
+                with open(filename, 'w', newline='') as f:
+                    import csv
+                    writer = csv.writer(f)
+                    
+                    # Header row
+                    writer.writerow(["Date", "Time", "Filename", "Tests", "Result", "Details"])
+                    
+                    # Data rows
+                    for item_id in self.history_table.get_children():
+                        values = self.history_table.item(item_id)["values"]
+                        writer.writerow(values)
+                
+                self.log_message(f"History exported to {filename}")
                 messagebox.showinfo("Export", f"History exported to {filename}")
             except Exception as e:
                 messagebox.showerror("Export Error", f"Failed to export history: {str(e)}")
+    def export_details_to_csv(self, details, file_name):
+        """Export test details to CSV file"""
+        try:
+            # Ask for save location
+            save_path = filedialog.asksaveasfilename(
+                defaultextension=".csv",
+                filetypes=[("CSV files", "*.csv"), ("All files", "*.*")],
+                initialfile=f"{file_name}_details.csv"
+            )
+            
+            if not save_path:  # User cancelled
+                return
+                
+            # Write CSV file
+            with open(save_path, 'w', newline='', encoding='utf-8') as csvfile:
+                fieldnames = ['service', 'action', 'status', 'details', 'execution_time']
+                writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
+                
+                writer.writeheader()
+                for test in details:
+                    writer.writerow({
+                        'service': test.get('service', ''),
+                        'action': test.get('action', ''),
+                        'status': test.get('status', ''),
+                        'details': test.get('details', ''),
+                        'execution_time': test.get('execution_time', 0)
+                    })
+                    
+            messagebox.showinfo("Export Successful", f"Details exported to {save_path}")
+            
+        except Exception as e:
+            messagebox.showerror("Export Error", f"Failed to export details: {str(e)}")
     
     def view_history_details(self):
         """View detailed information for selected history item"""
@@ -1620,11 +2009,131 @@ class ApplicationGUI:
             return
         
         item_id = selection[0]
-        filename = self.history_table.item(item_id)["values"][2]  # Filename column
+        history_values = self.history_table.item(item_id)["values"]
+        file_name = history_values[2]  # Filename column
         
-        # TODO: Implement detailed history view window
-        messagebox.showinfo("Details", f"Detailed view for {filename}\n\n(Feature coming soon)")
-    
+        try:
+            # Truy vấn database để lấy result_id dựa trên timestamp chính xác
+            date_str = history_values[0]  # Date column
+            time_str = history_values[1]  # Time column
+            timestamp = f"{date_str} {time_str}"
+            
+            # Tìm kết quả dựa trên file_name và timestamp
+            conn = sqlite3.connect(self.database.db_path)
+            conn.row_factory = sqlite3.Row
+            cursor = conn.cursor()
+            
+            cursor.execute(
+                "SELECT id FROM test_results WHERE file_name = ? AND timestamp LIKE ? ORDER BY timestamp DESC LIMIT 1",
+                (file_name, f"{timestamp}%")  # Sử dụng LIKE vì có thể có sự khác nhau nhỏ về định dạng timestamp
+            )
+            
+            result = cursor.fetchone()
+            conn.close()
+            
+            if not result:
+                messagebox.showinfo("No Details", f"No test details found for {file_name} at {timestamp}")
+                return
+            
+            result_id = result["id"]
+            
+            # Get detailed test results using result_id
+            details = self.database.get_test_details(result_id=result_id)
+            
+            if details:
+                # Tạo cửa sổ chi tiết
+                details_window = tk.Toplevel(self.root)
+                details_window.title(f"Test Details - {file_name}")
+                details_window.geometry("800x600")
+                details_window.minsize(640, 480)
+                
+                # Tạo frame chứa nội dung
+                content_frame = ttk.Frame(details_window, padding=10)
+                content_frame.pack(fill=tk.BOTH, expand=True)
+                
+                # Thêm label hiển thị thông tin cơ bản
+                header_frame = ttk.Frame(content_frame)
+                header_frame.pack(fill=tk.X, pady=(0, 10))
+                
+                ttk.Label(header_frame, text=f"File: {file_name}", font=('Segoe UI', 12, 'bold')).pack(anchor=tk.W)
+                ttk.Label(header_frame, text=f"Date/Time: {date_str} {time_str}").pack(anchor=tk.W)
+                ttk.Label(header_frame, text=f"Status: {history_values[3]}").pack(anchor=tk.W)
+                
+                # Tạo bảng hiển thị chi tiết các test case
+                details_frame = ttk.Frame(content_frame)
+                details_frame.pack(fill=tk.BOTH, expand=True, pady=5)
+                
+                # Scrollbars cho bảng
+                y_scroll = ttk.Scrollbar(details_frame, orient=tk.VERTICAL)
+                y_scroll.pack(side=tk.RIGHT, fill=tk.Y)
+                
+                x_scroll = ttk.Scrollbar(details_frame, orient=tk.HORIZONTAL)
+                x_scroll.pack(side=tk.BOTTOM, fill=tk.X)
+                
+                # Tạo TreeView để hiển thị chi tiết
+                columns = ("service", "action", "status", "details", "execution_time")
+                details_table = ttk.Treeview(details_frame, columns=columns, show="headings",
+                                            yscrollcommand=y_scroll.set, xscrollcommand=x_scroll.set)
+                
+                # Configure scrollbars
+                y_scroll.config(command=details_table.yview)
+                x_scroll.config(command=details_table.xview)
+                
+                # Configure columns
+                details_table.heading("service", text="Service")
+                details_table.heading("action", text="Action")
+                details_table.heading("status", text="Status")
+                details_table.heading("details", text="Details")
+                details_table.heading("execution_time", text="Time (s)")
+                
+                details_table.column("service", width=120, anchor=tk.W)
+                details_table.column("action", width=150, anchor=tk.W)
+                details_table.column("status", width=80, anchor=tk.CENTER)
+                details_table.column("details", width=300, anchor=tk.W)
+                details_table.column("execution_time", width=80, anchor=tk.E)
+                
+                details_table.pack(fill=tk.BOTH, expand=True)
+                
+                # Thêm dữ liệu vào bảng
+                for i, test in enumerate(details):
+                    status_text = test.get("status", "").capitalize()
+                    status_tag = test.get("status", "unknown").lower()
+                    
+                    details_table.insert("", "end", values=(
+                        test.get("service", ""),
+                        test.get("action", ""),
+                        status_text,
+                        test.get("details", ""),
+                        f"{test.get('execution_time', 0):.2f}"
+                    ), tags=(status_tag,))
+                
+                # Thêm màu sắc cho các trạng thái
+                details_table.tag_configure("pass", background="#e6ffe6")
+                details_table.tag_configure("fail", background="#ffe6e6")
+                details_table.tag_configure("error", background="#fff2e6")
+                
+                # Frame cho các nút điều khiển
+                button_frame = ttk.Frame(content_frame)
+                button_frame.pack(fill=tk.X, pady=10)
+                
+                # Nút Export
+                export_btn = ttk.Button(button_frame, text="Export to CSV", 
+                                    command=lambda: self.export_details_to_csv(details, file_name))
+                export_btn.pack(side=tk.LEFT, padx=5)
+                
+                # Nút Close
+                close_btn = ttk.Button(button_frame, text="Close", command=details_window.destroy)
+                close_btn.pack(side=tk.RIGHT, padx=5)
+                
+                # Đặt focus cho cửa sổ và hiển thị
+                details_window.transient(self.root)
+                details_window.grab_set()
+                self.root.wait_window(details_window)
+            else:
+                messagebox.showinfo("No Details", f"No detailed test results found for {file_name}")
+                
+        except Exception as e:
+            messagebox.showerror("Error", f"Failed to load test details: {str(e)}")
     def clear_logs(self):
         """Clear the log display"""
         confirm = messagebox.askyesno("Clear Logs", "Clear all log messages from display?")
@@ -1653,15 +2162,20 @@ class ApplicationGUI:
     def show_documentation(self):
         """Show documentation"""
         doc_msg = (
-            "Test Case Manager v2.0 Documentation\n\n"
+            "Test Case Manager v2.0 (Windows Edition)\n\n"
             "Enhanced Features:\n"
             "• Improved error handling and retry logic\n"
             "• Multiple result file detection strategies\n"
             "• Enhanced connection management\n"
-            "• Automatic temporary file cleanup\n"
+            "• Windows-specific optimizations\n"
             "• Better user feedback and logging\n\n"
-            "For detailed documentation, please refer to:\n"
-            "docs/user_guide.md"
+            "Usage Instructions:\n"
+            "1. Configure connection settings\n"
+            "2. Test connection to verify access\n"
+            "3. Select test files to run\n"
+            "4. Click 'Send Files' to run tests\n"
+            "5. View results and history\n\n"
+            "For detailed documentation, see the Help menu."
         )
         messagebox.showinfo("Documentation", doc_msg)
     
@@ -1669,30 +2183,16 @@ class ApplicationGUI:
         """Show about dialog"""
         about_msg = (
             "Test Case Manager v2.0\n"
-            "Enhanced Edition\n\n"
+            "Windows Edition\n\n"
             "© 2025 juno-kyojin\n\n"
             "Features:\n"
-            "• Real SSH connectivity with retry logic\n"
+            "• Windows-optimized SSH connectivity\n"
             "• Enhanced error handling and recovery\n"
             "• Multiple file detection strategies\n"
             "• Database storage with auto-cleanup\n"
             "• Professional GUI with progress tracking\n\n"
-            f"Built on: {time.strftime('%Y-%m-%d %H:%M:%S')}\n"
-            "Python version with Tkinter GUI"
+            f"Build: {time.strftime('%Y-%m-%d %H:%M:%S')}\n"
+            f"User: {os.environ.get('USERNAME', 'unknown')}\n"
+            f"Windows {platform.win32_ver()[0]} {platform.win32_ver()[1]}"
         )
         messagebox.showinfo("About", about_msg)
-
-
-def main():
-    """Main application entry point"""
-    try:
-        root = tk.Tk()
-        app = ApplicationGUI(root)
-        root.mainloop()
-    except Exception as e:
-        logging.error(f"Failed to start application: {e}")
-        print(f"Error starting application: {e}")
-
-
-if __name__ == "__main__":
-    main()

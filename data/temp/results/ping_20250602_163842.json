@@ -10,8 +10,8 @@
 				"id":	1,
 				"service":	"wan",
 				"action":	"create",
-				"execution_time_ms":	0,
-				"timestamp":	"2025-05-29 13:45:31",
+				"execution_time_ms":	1000,
+				"timestamp":	"2025-06-02 16:38:41",
 				"status":	false,
 				"message":	"Invalid input parameters"
 			}],
@@ -20,7 +20,7 @@
 				"service":	"lan",
 				"action":	"create",
 				"execution_time_ms":	0,
-				"timestamp":	"2025-05-29 13:45:31",
+				"timestamp":	"2025-06-02 16:38:42",
 				"status":	false,
 				"message":	"Unknown service or action"
 			}]

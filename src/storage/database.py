@@ -1,174 +1,341 @@
-# Module: database.py
-# Purpose: Real SQLite database operations
-
+# src/storage/database.py
+import os
 import sqlite3
 import logging
-import os
-from datetime import datetime
-from typing import List, Dict, Any, Optional
+import time
+from typing import Dict, List, Any
 
 class TestDatabase:
-    def __init__(self, db_path: str = "data/history.db"):
-        self.db_path = db_path
-        self.logger = logging.getLogger(__name__)
-        self.ensure_database_exists()
+    """Database handler for test results and settings"""
     
-    def ensure_database_exists(self):
-        """Create database and tables if they don't exist"""
+    def __init__(self):
+        self.logger = logging.getLogger(__name__)
+        self.db_path = os.path.join("data", "history.db")
+        
+        # Ensure directory exists
+        os.makedirs(os.path.dirname(self.db_path), exist_ok=True)
+        
+        # Initialize database
+        self._init_db()
+    
+    def _init_db(self):
+        """Initialize database tables if they don't exist"""
         try:
-            # Create directory if needed
-            os.makedirs(os.path.dirname(self.db_path), exist_ok=True)
+            conn = sqlite3.connect(self.db_path)
+            cursor = conn.cursor()
             
-            with sqlite3.connect(self.db_path) as conn:
-                self.create_default_schema(conn)
-                conn.commit()
-                self.logger.info(f"Database initialized: {self.db_path}")
-                
+            # Settings table
+            cursor.execute('''
+                CREATE TABLE IF NOT EXISTS settings (
+                    key TEXT PRIMARY KEY,
+                    value TEXT
+                )
+            ''')
+            
+            # Test results table
+            cursor.execute('''
+                CREATE TABLE IF NOT EXISTS test_results (
+                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    file_name TEXT,
+                    file_size INTEGER,
+                    test_count INTEGER,
+                    send_status TEXT,
+                    overall_result TEXT,
+                    affects_wan BOOLEAN,
+                    affects_lan BOOLEAN,
+                    execution_time REAL,
+                    target_ip TEXT,
+                    target_username TEXT,
+                    timestamp DATETIME DEFAULT CURRENT_TIMESTAMP
+                )
+            ''')
+            
+            # Test case details table
+            cursor.execute('''
+                CREATE TABLE IF NOT EXISTS test_cases (
+                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    result_id INTEGER,
+                    service TEXT,
+                    action TEXT,
+                    status TEXT,
+                    details TEXT,
+                    execution_time REAL,
+                    FOREIGN KEY (result_id) REFERENCES test_results(id)
+                )
+            ''')
+            
+            # Connection log table
+            cursor.execute('''
+                CREATE TABLE IF NOT EXISTS connection_log (
+                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    ip_address TEXT,
+                    status TEXT,
+                    details TEXT,
+                    timestamp DATETIME DEFAULT CURRENT_TIMESTAMP
+                )
+            ''')
+            
+            conn.commit()
+            conn.close()
+            
         except Exception as e:
             self.logger.error(f"Database initialization error: {e}")
-            # Don't raise - create in-memory fallback
-            self.db_path = ":memory:"
     
-    def create_default_schema(self, conn):
-        """Create default database schema"""
-        conn.executescript("""
-            CREATE TABLE IF NOT EXISTS test_files (
-                id INTEGER PRIMARY KEY AUTOINCREMENT,
-                timestamp TEXT NOT NULL DEFAULT (datetime('now')),
-                file_name TEXT NOT NULL,
-                file_size INTEGER NOT NULL,
-                test_count INTEGER NOT NULL,
-                send_status TEXT NOT NULL,
-                overall_result TEXT,
-                affects_wan INTEGER DEFAULT 0,
-                affects_lan INTEGER DEFAULT 0,
-                execution_time REAL,
-                target_ip TEXT NOT NULL,
-                target_username TEXT NOT NULL
-            );
-
-            CREATE TABLE IF NOT EXISTS test_case_results (
-                id INTEGER PRIMARY KEY AUTOINCREMENT,
-                test_file_id INTEGER NOT NULL,
-                service TEXT NOT NULL,
-                action TEXT,
-                status TEXT NOT NULL,
-                details TEXT,
-                execution_time REAL,
-                FOREIGN KEY (test_file_id) REFERENCES test_files(id)
-            );
-
-            CREATE TABLE IF NOT EXISTS connection_log (
-                id INTEGER PRIMARY KEY AUTOINCREMENT,
-                timestamp TEXT NOT NULL DEFAULT (datetime('now')),
-                target_ip TEXT NOT NULL,
-                connection_type TEXT DEFAULT 'LAN',
-                status TEXT NOT NULL,
-                details TEXT
-            );
-
-            CREATE TABLE IF NOT EXISTS settings (
-                key TEXT PRIMARY KEY,
-                value TEXT NOT NULL,
-                updated_at TEXT NOT NULL DEFAULT (datetime('now'))
-            );
-        """)
-    
-    def log_connection(self, target_ip: str, status: str, details: str = "", connection_type: str = "LAN"):
-        """Log a connection event"""
+    def save_setting(self, key: str, value: str) -> bool:
+        """Save a setting to the database"""
         try:
-            with sqlite3.connect(self.db_path) as conn:
-                conn.execute("""
-                    INSERT INTO connection_log (target_ip, connection_type, status, details)
-                    VALUES (?, ?, ?, ?)
-                """, (target_ip, connection_type, status, details))
-                conn.commit()
+            conn = sqlite3.connect(self.db_path)
+            cursor = conn.cursor()
+            
+            cursor.execute(
+                "INSERT OR REPLACE INTO settings (key, value) VALUES (?, ?)",
+                (key, value)
+            )
+            
+            conn.commit()
+            conn.close()
+            return True
+            
         except Exception as e:
-            self.logger.error(f"Error logging connection: {e}")
-    
-    def save_test_file_result(self, file_name: str, file_size: int, test_count: int, 
-                             send_status: str, overall_result: str, affects_wan: bool, 
-                             affects_lan: bool, execution_time: float, target_ip: str, 
-                             target_username: str) -> int:
-        """
-        Save test file result and return the file ID
-        """
-        try:
-            with sqlite3.connect(self.db_path) as conn:
-                cursor = conn.execute("""
-                    INSERT INTO test_files 
-                    (file_name, file_size, test_count, send_status, overall_result, 
-                     affects_wan, affects_lan, execution_time, target_ip, target_username)
-                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-                """, (file_name, file_size, test_count, send_status, overall_result,
-                      int(affects_wan), int(affects_lan), execution_time, target_ip, target_username))
-                
-                file_id = cursor.lastrowid
-                conn.commit()
-                return file_id
-                
-        except Exception as e:
-            self.logger.error(f"Error saving test file result: {e}")
-            return -1
-    
-    def save_test_case_results(self, test_file_id: int, test_results: List[Dict[str, Any]]):
-        """Save individual test case results"""
-        try:
-            with sqlite3.connect(self.db_path) as conn:
-                for result in test_results:
-                    conn.execute("""
-                        INSERT INTO test_case_results 
-                        (test_file_id, service, action, status, details, execution_time)
-                        VALUES (?, ?, ?, ?, ?, ?)
-                    """, (
-                        test_file_id,
-                        result.get("service", ""),
-                        result.get("action", ""),
-                        result.get("status", ""),
-                        result.get("details", ""),
-                        result.get("execution_time", 0.0)
-                    ))
-                conn.commit()
-        except Exception as e:
-            self.logger.error(f"Error saving test case results: {e}")
-    
-    def get_recent_history(self, limit: int = 100) -> List[Dict[str, Any]]:
-        """Get recent test history"""
-        try:
-            with sqlite3.connect(self.db_path) as conn:
-                conn.row_factory = sqlite3.Row
-                cursor = conn.execute("""
-                    SELECT * FROM test_files 
-                    ORDER BY timestamp DESC 
-                    LIMIT ?
-                """, (limit,))
-                
-                rows = cursor.fetchall()
-                return [dict(row) for row in rows]
-                
-        except Exception as e:
-            self.logger.error(f"Error getting history: {e}")
-            return []
-    
-    def save_setting(self, key: str, value: str):
-        """Save an application setting"""
-        try:
-            with sqlite3.connect(self.db_path) as conn:
-                conn.execute("""
-                    INSERT OR REPLACE INTO settings (key, value, updated_at)
-                    VALUES (?, ?, datetime('now'))
-                """, (key, value))
-                conn.commit()
-        except Exception as e:
-            self.logger.error(f"Error saving setting: {e}")
+            self.logger.error(f"Error saving setting {key}: {e}")
+            return False
     
     def get_setting(self, key: str, default: str = "") -> str:
-        """Get an application setting"""
+        """Get a setting from the database"""
         try:
-            with sqlite3.connect(self.db_path) as conn:
-                cursor = conn.execute("SELECT value FROM settings WHERE key = ?", (key,))
-                row = cursor.fetchone()
-                return row[0] if row else default
+            conn = sqlite3.connect(self.db_path)
+            cursor = conn.cursor()
+            
+            cursor.execute("SELECT value FROM settings WHERE key = ?", (key,))
+            result = cursor.fetchone()
+            
+            conn.close()
+            
+            return result[0] if result else default
+            
         except Exception as e:
-            self.logger.error(f"Error getting setting: {e}")
+            self.logger.error(f"Error retrieving setting {key}: {e}")
             return default
+    
+    def log_connection(self, ip_address: str, status: str, details: str) -> bool:
+        """Log a connection attempt"""
+        try:
+            conn = sqlite3.connect(self.db_path)
+            cursor = conn.cursor()
+            
+            cursor.execute(
+                "INSERT INTO connection_log (ip_address, status, details) VALUES (?, ?, ?)",
+                (ip_address, status, details)
+            )
+            
+            conn.commit()
+            conn.close()
+            return True
+            
+        except Exception as e:
+            self.logger.error(f"Error logging connection: {e}")
+            return False
+    
+    def save_test_file_result(self, **kwargs) -> int:
+        """Save test file execution results"""
+        try:
+            conn = sqlite3.connect(self.db_path)
+            cursor = conn.cursor()
+            
+            # Insert the test result
+            cursor.execute(
+                """
+                INSERT INTO test_results (
+                    file_name, file_size, test_count, send_status, overall_result,
+                    affects_wan, affects_lan, execution_time, target_ip, target_username
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                """,
+                (
+                    kwargs.get("file_name", ""),
+                    kwargs.get("file_size", 0),
+                    kwargs.get("test_count", 0),
+                    kwargs.get("send_status", ""),
+                    kwargs.get("overall_result", ""),
+                    kwargs.get("affects_wan", False),
+                    kwargs.get("affects_lan", False),
+                    kwargs.get("execution_time", 0),
+                    kwargs.get("target_ip", ""),
+                    kwargs.get("target_username", "")
+                )
+            )
+            
+            # Get the inserted ID
+            result_id = cursor.lastrowid
+            
+            conn.commit()
+            conn.close()
+            
+            return result_id
+            
+        except Exception as e:
+            self.logger.error(f"Error saving test result: {e}")
+            return -1
+    
+    def save_test_case_results(self, result_id: int, test_cases: List[Dict]) -> bool:
+        """Save individual test case results with more detailed information"""
+        try:
+            if not test_cases:
+                return True
+                
+            conn = sqlite3.connect(self.db_path)
+            cursor = conn.cursor()
+            
+            # Get file name for this result ID
+            cursor.execute("SELECT file_name FROM test_results WHERE id = ?", (result_id,))
+            row = cursor.fetchone()
+            if row:
+                file_name = row[0]
+                # Extract service and action from filename if test case has "unknown" service
+                base_name = os.path.splitext(file_name)[0]
+                parts = base_name.split('_')
+                default_service = parts[0] if parts else "unknown"
+                default_action = '_'.join(parts[1:]) if len(parts) > 1 else ""
+                
+                # Log extracted information
+                self.logger.info(f"Extracted from filename {file_name}: service={default_service}, action={default_action}")
+                
+                # Update test cases with unknown service
+                for test in test_cases:
+                    if test.get("service") == "unknown":
+                        test["service"] = default_service
+                        test["action"] = default_action
+                        # Cập nhật thông báo chi tiết với service và action mới
+                        status = test.get("status", "pass")
+                        status_text = "completed successfully" if status == "pass" else "failed"
+                        test["details"] = f"{default_service} {default_action} {status_text}"
+                        
+                        self.logger.info(f"Updated test case: {test['service']}.{test['action']} - {test['details']}")
+            
+            # Insert test cases
+            for test in test_cases:
+                cursor.execute(
+                    """
+                    INSERT INTO test_cases (
+                        result_id, service, action, status, details, execution_time
+                    ) VALUES (?, ?, ?, ?, ?, ?)
+                    """,
+                    (
+                        result_id,
+                        test.get("service", "unknown"),
+                        test.get("action", ""),
+                        test.get("status", "unknown"),
+                        test.get("details", ""),
+                        test.get("execution_time", 0)
+                    )
+                )
+            
+            # Kiểm tra số bản ghi đã được thêm vào
+            cursor.execute("SELECT COUNT(*) FROM test_cases WHERE result_id = ?", (result_id,))
+            count = cursor.fetchone()[0]
+            self.logger.info(f"Total {count} test cases saved for result ID {result_id}")
+            
+            conn.commit()
+            conn.close()
+            return True
+            
+        except Exception as e:
+            self.logger.error(f"Error saving test case results: {e}")
+            return False
+    
+    def get_recent_history(self, limit: int = 100) -> List[Dict]:
+        """Get recent test history"""
+        try:
+            conn = sqlite3.connect(self.db_path)
+            conn.row_factory = sqlite3.Row  # Return rows as dictionaries
+            cursor = conn.cursor()
+            
+            cursor.execute(
+                """
+                SELECT * FROM test_results 
+                ORDER BY timestamp DESC 
+                LIMIT ?
+                """,
+                (limit,)
+            )
+            
+            results = [dict(row) for row in cursor.fetchall()]
+            conn.close()
+            
+            return results
+            
+        except Exception as e:
+            self.logger.error(f"Error retrieving history: {e}")
+            return []
+    
+    def get_filtered_history(self, where_clause: str = "", limit: int = 100) -> List[Dict]:
+        """Get filtered test history"""
+        try:
+            conn = sqlite3.connect(self.db_path)
+            conn.row_factory = sqlite3.Row  # Return rows as dictionaries
+            cursor = conn.cursor()
+            
+            query = f"SELECT * FROM test_results {where_clause} ORDER BY timestamp DESC LIMIT {limit}"
+            cursor.execute(query)
+            
+            results = [dict(row) for row in cursor.fetchall()]
+            conn.close()
+            
+            return results
+            
+        except Exception as e:
+            self.logger.error(f"Error retrieving filtered history: {e}")
+            return []
+    
+    def get_test_details(self, result_id=None, file_name=None) -> List[Dict]:
+        """Get detailed test results by result_id or file_name (with timestamp)"""
+        try:
+            conn = sqlite3.connect(self.db_path)
+            conn.row_factory = sqlite3.Row
+            cursor = conn.cursor()
+            
+            # First get the result ID if not provided
+            if not result_id and file_name:
+                cursor.execute(
+                    "SELECT id, timestamp FROM test_results WHERE file_name = ? ORDER BY timestamp DESC LIMIT 1",
+                    (file_name,)
+                )
+                
+                result = cursor.fetchone()
+                if not result:
+                    return []
+                    
+                result_id = result["id"]
+                self.logger.info(f"Found result ID {result_id} for file {file_name} from {result['timestamp']}")
+            
+            # Then get all test cases
+            cursor.execute(
+                "SELECT * FROM test_cases WHERE result_id = ? ORDER BY id",
+                (result_id,)
+            )
+            
+            test_cases = [dict(row) for row in cursor.fetchall()]
+            conn.close()
+            
+            return test_cases
+        
+        except Exception as e:
+            self.logger.error(f"Error retrieving test details: {e}")
+            return []
+    
+    def clear_history(self) -> bool:
+        """Clear all history data"""
+        try:
+            conn = sqlite3.connect(self.db_path)
+            cursor = conn.cursor()
+            
+            cursor.execute("DELETE FROM test_cases")
+            cursor.execute("DELETE FROM test_results")
+            
+            conn.commit()
+            conn.close()
+            
+            return True
+            
+        except Exception as e:
+            self.logger.error(f"Error clearing history: {e}")
+            return False

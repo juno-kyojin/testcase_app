@@ -6,20 +6,6 @@
                 "host1": "youtube.com",
                 "host2": "google.com"
             }
-        },
-        {
-            "service": "wan",
-            "action": "create",
-            "params": {
-                "interface1": {"type": "pppoe", "username": "user1", "password": "pass1"}
-            }
-        },
-        {
-            "service": "lan",
-            "action": "create",
-            "params": {
-                "interface1": {"interface": "lan1", "ip": "192.168.1.1"}
-            }
         }
     ]
 }

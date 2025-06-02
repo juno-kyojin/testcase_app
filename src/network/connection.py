@@ -1,5 +1,6 @@
 # Module: connection.py
-# Purpose: SSH connection with SCP support for OpenWrt
+# Purpose: Windows-specific SSH connection implementation for OpenWrt devices
+# Last updated: 2025-06-02 by juno-kyojin
 
 import paramiko
 import logging
@@ -7,6 +8,7 @@ import time
 import os
 import subprocess
 import tempfile
+import base64
 from typing import Optional, Tuple
 
 class SSHConnection:
@@ -20,12 +22,12 @@ class SSHConnection:
     
     def connect(self, hostname: str, username: str, password: str, port: int = 22, timeout: int = 10) -> bool:
         """
-        Establish SSH connection and store credentials for SCP
+        Establish SSH connection and store credentials for file transfers
         """
         try:
             self.disconnect()
             
-            # Store connection details for SCP
+            # Store connection details
             self.hostname = hostname
             self.username = username
             self.password = password
@@ -125,12 +127,49 @@ class SSHConnection:
         except Exception as e:
             self.logger.error(f"Error ensuring directory {remote_dir}: {e}")
             return False
+
+    def upload_file_via_ssh_exec(self, local_path: str, remote_path: str) -> bool:
+        """Upload file using established SSH connection and base64 encoding (best method)"""
+        try:
+            if not os.path.exists(local_path):
+                self.logger.error(f"Local file not found: {local_path}")
+                return False
+
+            # Read file as binary
+            with open(local_path, 'rb') as f:
+                file_content = f.read()
+            
+            # Base64 encode content
+            encoded_content = base64.b64encode(file_content).decode('utf-8')
+            
+            # Create target directory if needed
+            remote_dir = os.path.dirname(remote_path)
+            if remote_dir and remote_dir != '/':
+                if not self.ensure_remote_directory(remote_dir):
+                    return False
+            
+            # Command to decode and create file on device
+            decode_cmd = f"echo '{encoded_content}' | base64 -d > '{remote_path}'"
+            
+            # Execute through existing SSH connection
+            success, stdout, stderr = self.execute_command(decode_cmd, timeout=60)
+            
+            if success:
+                self.logger.info(f"File uploaded via SSH exec: {local_path} -> {remote_path}")
+                return True
+            else:
+                self.logger.error(f"SSH exec upload failed: {stderr}")
+                return False
+                    
+        except Exception as e:
+            self.logger.error(f"SSH exec upload error: {e}")
+            return False
     
-    def upload_file_via_scp(self, local_path: str, remote_path: str) -> bool:
-        """Upload file using scp command"""
+    def upload_file_via_pscp(self, local_path: str, remote_path: str) -> bool:
+        """Upload file using PuTTY's PSCP (Windows-only method)"""
         try:
             if not self.hostname or not self.username or not self.password:
-                self.logger.error("Connection details not available for SCP")
+                self.logger.error("Connection details not available for PSCP")
                 return False
             
             # Create remote directory first
@@ -139,110 +178,46 @@ class SSHConnection:
                 if not self.ensure_remote_directory(remote_dir):
                     return False
             
-            # Prepare scp command
+            # Prepare for PSCP
             remote_target = f"{self.username}@{self.hostname}:{remote_path}"
             
-            # Use scp with -O flag (legacy mode) and password via sshpass if available
             try:
-                # Try with sshpass first (if available)
-                scp_cmd = [
-                    "sshpass", "-p", self.password,
-                    "scp", "-O", "-o", "StrictHostKeyChecking=no",
-                    "-o", "UserKnownHostsFile=/dev/null",
-                    "-o", "LogLevel=ERROR",
-                    local_path, remote_target
+                pscp_cmd = [
+                    "pscp", 
+                    "-scp",          # Use SCP protocol
+                    "-batch",        # Non-interactive mode
+                    "-pw", self.password,  # Password from memory
+                    local_path, 
+                    remote_target
                 ]
                 
                 result = subprocess.run(
-                    scp_cmd,
+                    pscp_cmd,
                     capture_output=True,
                     text=True,
                     timeout=60
                 )
                 
                 if result.returncode == 0:
-                    self.logger.info(f"File uploaded via scp (sshpass): {local_path} -> {remote_path}")
+                    self.logger.info(f"File uploaded via PSCP: {local_path} -> {remote_path}")
                     return True
                 else:
-                    self.logger.warning(f"sshpass scp failed: {result.stderr}")
-                    
-            except FileNotFoundError:
-                self.logger.info("sshpass not available, trying expect")
-            except Exception as e:
-                self.logger.warning(f"sshpass scp error: {e}")
-            
-            # Fallback: Use expect script
-            return self.upload_file_via_expect_scp(local_path, remote_path)
-                
-        except Exception as e:
-            self.logger.error(f"SCP upload error: {e}")
-            return False
-    
-    def upload_file_via_expect_scp(self, local_path: str, remote_path: str) -> bool:
-        """Upload file using expect script for SCP password automation"""
-        try:
-            # Create temporary expect script
-            expect_script = f"""#!/usr/bin/expect -f
-set timeout 60
-spawn scp -O -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null {local_path} {self.username}@{self.hostname}:{remote_path}
-expect {{
-    "password:" {{
-        send "{self.password}\\r"
-        expect "100%"
-        expect eof
-    }}
-    "Password:" {{
-        send "{self.password}\\r"
-        expect "100%"
-        expect eof
-    }}
-    timeout {{
-        exit 1
-    }}
-}}
-exit 0
-"""
-            
-            # Write expect script to temporary file
-            with tempfile.NamedTemporaryFile(mode='w', suffix='.exp', delete=False) as f:
-                f.write(expect_script)
-                expect_file = f.name
-            
-            try:
-                # Make script executable
-                os.chmod(expect_file, 0o755)
-                
-                # Run expect script
-                result = subprocess.run(
-                    [expect_file],
-                    capture_output=True,
-                    text=True,
-                    timeout=60
-                )
-                
-                if result.returncode == 0:
-                    self.logger.info(f"File uploaded via expect scp: {local_path} -> {remote_path}")
-                    return True
-                else:
-                    self.logger.error(f"Expect SCP failed: {result.stderr}")
+                    self.logger.warning(f"PSCP upload failed: {result.stderr}")
                     return False
                     
-            finally:
-                # Clean up expect script
-                try:
-                    os.unlink(expect_file)
-                except:
-                    pass
-                    
-        except FileNotFoundError:
-            self.logger.warning("expect not available")
-            return False
+            except FileNotFoundError:
+                self.logger.warning("PSCP not found - please install PuTTY tools")
+                return False
+            except Exception as e:
+                self.logger.warning(f"PSCP error: {e}")
+                return False
+                
         except Exception as e:
-            self.logger.error(f"Expect SCP error: {e}")
+            self.logger.error(f"PSCP setup error: {e}")
             return False
     
     def upload_file_via_ssh_cat(self, local_path: str, remote_path: str) -> bool:
-        """Upload file using SSH with cat (fallback method)"""
+        """Upload text file using SSH cat (fallback method for text files)"""
         try:
             with open(local_path, 'r', encoding='utf-8') as f:
                 content = f.read()
@@ -273,28 +248,32 @@ exit 0
             return False
     
     def upload_file(self, local_path: str, remote_path: str) -> bool:
-        """Upload file with multiple methods"""
+        """Upload file using the best available method for Windows"""
         self.logger.info(f"Attempting to upload: {local_path} -> {remote_path}")
         
-        # Method 1: Try SCP (preferred)
-        if self.upload_file_via_scp(local_path, remote_path):
+        # Ensure proper remote path format
+        remote_path = remote_path.replace('\\', '/')
+        
+        # Method 1: SSH exec with base64 (preferred - uses existing connection)
+        if self.upload_file_via_ssh_exec(local_path, remote_path):
             return True
         
-        # Method 2: Fallback to SSH cat for text files
-        try:
-            if self.upload_file_via_ssh_cat(local_path, remote_path):
-                return True
-        except Exception as e:
-            self.logger.warning(f"SSH cat method failed: {e}")
+        # Method 2: PSCP (PuTTY tool)
+        if self.upload_file_via_pscp(local_path, remote_path):
+            return True
+        
+        # Method 3: SSH cat (text files only - fallback)
+        if self.upload_file_via_ssh_cat(local_path, remote_path):
+            return True
         
         self.logger.error("All upload methods failed")
         return False
     
-    def download_file_via_scp(self, remote_path: str, local_path: str) -> bool:
-        """Download file using scp command"""
+    def download_file_via_ssh_exec(self, remote_path: str, local_path: str) -> bool:
+        """Download file using established SSH connection and base64 encoding (best method)"""
         try:
-            if not self.hostname or not self.username or not self.password:
-                self.logger.error("Connection details not available for SCP")
+            if not self.is_connected():
+                self.logger.error("No active SSH connection for download")
                 return False
             
             # Ensure local directory exists
@@ -302,101 +281,89 @@ exit 0
             if local_dir:
                 os.makedirs(local_dir, exist_ok=True)
             
-            # Prepare scp command
+            # Check if file exists
+            if not self.file_exists(remote_path):
+                self.logger.error(f"Remote file not found: {remote_path}")
+                return False
+            
+            # Get file content using base64 to support binary files
+            cmd = f"cat '{remote_path}' | base64"
+            success, stdout, stderr = self.execute_command(cmd, timeout=60)
+            
+            if not success:
+                self.logger.error(f"Failed to get file content: {stderr}")
+                return False
+            
+            # Decode base64 content
+            try:
+                file_content = base64.b64decode(stdout)
+                
+                # Write to local file
+                with open(local_path, 'wb') as f:
+                    f.write(file_content)
+                    
+                self.logger.info(f"File downloaded via SSH exec: {remote_path} -> {local_path}")
+                return True
+            except Exception as e:
+                self.logger.error(f"Failed to decode file content: {e}")
+                return False
+                
+        except Exception as e:
+            self.logger.error(f"SSH exec download error: {e}")
+            return False
+    
+    def download_file_via_pscp(self, remote_path: str, local_path: str) -> bool:
+        """Download file using PuTTY's PSCP (Windows-only method)"""
+        try:
+            if not self.hostname or not self.username or not self.password:
+                self.logger.error("Connection details not available for PSCP")
+                return False
+            
+            # Ensure local directory exists
+            local_dir = os.path.dirname(local_path)
+            if local_dir:
+                os.makedirs(local_dir, exist_ok=True)
+            
+            # Prepare for PSCP
             remote_source = f"{self.username}@{self.hostname}:{remote_path}"
             
-            # Try with sshpass first
             try:
-                scp_cmd = [
-                    "sshpass", "-p", self.password,
-                    "scp", "-O", "-o", "StrictHostKeyChecking=no",
-                    "-o", "UserKnownHostsFile=/dev/null",
-                    "-o", "LogLevel=ERROR",
-                    remote_source, local_path
+                pscp_cmd = [
+                    "pscp",
+                    "-batch",
+                    "-pw", self.password,
+                    "-scp",
+                    remote_source,
+                    local_path
                 ]
                 
                 result = subprocess.run(
-                    scp_cmd,
+                    pscp_cmd,
                     capture_output=True,
                     text=True,
                     timeout=60
                 )
                 
                 if result.returncode == 0:
-                    self.logger.info(f"File downloaded via scp: {remote_path} -> {local_path}")
+                    self.logger.info(f"File downloaded via PSCP: {remote_path} -> {local_path}")
                     return True
                 else:
-                    self.logger.warning(f"sshpass scp download failed: {result.stderr}")
-                    
-            except FileNotFoundError:
-                self.logger.info("sshpass not available for download")
-            except Exception as e:
-                self.logger.warning(f"sshpass scp download error: {e}")
-            
-            # Fallback to expect method (similar to upload)
-            return self.download_file_via_expect_scp(remote_path, local_path)
-                
-        except Exception as e:
-            self.logger.error(f"SCP download error: {e}")
-            return False
-    
-    def download_file_via_expect_scp(self, remote_path: str, local_path: str) -> bool:
-        """Download file using expect script for SCP"""
-        try:
-            expect_script = f"""#!/usr/bin/expect -f
-set timeout 60
-spawn scp -O -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null {self.username}@{self.hostname}:{remote_path} {local_path}
-expect {{
-    "password:" {{
-        send "{self.password}\\r"
-        expect "100%"
-        expect eof
-    }}
-    "Password:" {{
-        send "{self.password}\\r"
-        expect "100%"
-        expect eof
-    }}
-    timeout {{
-        exit 1
-    }}
-}}
-exit 0
-"""
-            
-            with tempfile.NamedTemporaryFile(mode='w', suffix='.exp', delete=False) as f:
-                f.write(expect_script)
-                expect_file = f.name
-            
-            try:
-                os.chmod(expect_file, 0o755)
-                
-                result = subprocess.run(
-                    [expect_file],
-                    capture_output=True,
-                    text=True,
-                    timeout=60
-                )
-                
-                if result.returncode == 0:
-                    self.logger.info(f"File downloaded via expect scp: {remote_path} -> {local_path}")
-                    return True
-                else:
-                    self.logger.error(f"Expect SCP download failed: {result.stderr}")
+                    self.logger.warning(f"PSCP download failed: {result.stderr}")
                     return False
                     
-            finally:
-                try:
-                    os.unlink(expect_file)
-                except:
-                    pass
-                    
+            except FileNotFoundError:
+                self.logger.warning("PSCP not found - please install PuTTY tools")
+                return False
+            except Exception as e:
+                self.logger.warning(f"PSCP download error: {e}")
+                return False
+                
         except Exception as e:
-            self.logger.error(f"Expect SCP download error: {e}")
+            self.logger.error(f"PSCP download setup error: {e}")
             return False
     
     def download_file_via_ssh_cat(self, remote_path: str, local_path: str) -> bool:
-        """Download file using SSH cat command"""
+        """Download text file using SSH cat (fallback method for text files)"""
         try:
             success, content, stderr = self.execute_command(f"cat '{remote_path}'")
             
@@ -421,14 +388,22 @@ exit 0
             return False
     
     def download_file(self, remote_path: str, local_path: str) -> bool:
-        """Download file with multiple methods"""
+        """Download file using the best available method for Windows"""
         self.logger.info(f"Attempting to download: {remote_path} -> {local_path}")
         
-        # Method 1: Try SCP (preferred)
-        if self.download_file_via_scp(remote_path, local_path):
+        # Ensure proper path formats
+        remote_path = remote_path.replace('\\', '/')
+        local_path = local_path.replace('/', '\\')
+        
+        # Method 1: SSH exec with base64 (preferred - uses existing connection)
+        if self.download_file_via_ssh_exec(remote_path, local_path):
             return True
         
-        # Method 2: Fallback to SSH cat
+        # Method 2: PSCP (PuTTY tool)
+        if self.download_file_via_pscp(remote_path, local_path):
+            return True
+        
+        # Method 3: SSH cat (text files only - fallback)
         if self.download_file_via_ssh_cat(remote_path, local_path):
             return True
         
