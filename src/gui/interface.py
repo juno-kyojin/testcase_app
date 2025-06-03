@@ -325,7 +325,9 @@ class ApplicationGUI:
         
         ttk.Button(file_btn_frame, text="Select Files", command=self.select_files).pack(side=tk.LEFT, padx=5)
         ttk.Button(file_btn_frame, text="Clear Selection", command=self.clear_files).pack(side=tk.LEFT, padx=5)
-        
+        # THÊM HAI NÚT MỚI: move up và move down
+        ttk.Button(file_btn_frame, text="↑ Move Up", command=self.move_file_up).pack(side=tk.LEFT, padx=5)
+        ttk.Button(file_btn_frame, text="↓ Move Down", command=self.move_file_down).pack(side=tk.LEFT, padx=5)
         # File table
         file_table_frame = ttk.Frame(file_frame)
         file_table_frame.grid(row=1, column=0, sticky="nsew", padx=5, pady=5)
@@ -636,6 +638,73 @@ class ApplicationGUI:
             for filename, error in invalid_files:
                 error_msg += f"• {filename}: {error}\n"
             messagebox.showerror("Invalid Files", error_msg)
+
+    def move_file_up(self):
+        """Move selected file up in the list"""
+        selection = self.file_table.selection()
+        if not selection:
+            messagebox.showinfo("No Selection", "Please select a file to move")
+            return
+        
+        item_id = selection[0]
+        index = self.file_table.index(item_id)
+        
+        # Can't move if already at the top
+        if index == 0:
+            return
+        
+        # Get all items to preserve order
+        all_items = self.file_table.get_children()
+        
+        # Update the table
+        values = self.file_table.item(item_id, "values")
+        self.file_table.delete(item_id)
+        self.file_table.insert("", index-1, values=values)
+        
+        # Reselect the moved item
+        new_item_id = self.file_table.get_children()[index-1]
+        self.file_table.selection_set(new_item_id)
+        
+        # Update the file list
+        file_path = self.selected_files[index]
+        file_name = os.path.basename(file_path)
+        
+        self.selected_files.pop(index)
+        self.selected_files.insert(index-1, file_path)
+        
+        self.log_message(f"Moved {file_name} up in the queue")
+
+    def move_file_down(self):
+        """Move selected file down in the list"""
+        selection = self.file_table.selection()
+        if not selection:
+            messagebox.showinfo("No Selection", "Please select a file to move")
+            return
+        
+        item_id = selection[0]
+        index = self.file_table.index(item_id)
+        
+        # Can't move if already at the bottom
+        if index >= len(self.file_table.get_children()) - 1:
+            return
+        
+        # Update the table
+        values = self.file_table.item(item_id, "values")
+        self.file_table.delete(item_id)
+        self.file_table.insert("", index+1, values=values)
+        
+        # Reselect the moved item
+        new_item_id = self.file_table.get_children()[index+1]
+        self.file_table.selection_set(new_item_id)
+        
+        # Update the file list
+        file_path = self.selected_files[index]
+        file_name = os.path.basename(file_path)
+        
+        self.selected_files.pop(index)
+        self.selected_files.insert(index+1, file_path)
+        
+        self.log_message(f"Moved {file_name} down in the queue")
     
     def send_files(self):
         """Send files using real SSH connection and file transfer"""
