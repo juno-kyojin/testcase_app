@@ -880,6 +880,16 @@ class ApplicationGUI:
                 file_start_time = time.time()
                 self.log_message(f"Processing file {i+1}/{total_files}: {file_name}")
                 
+                # NEW: Kiểm tra xem file kết quả đã tồn tại chưa
+                expected_result_pattern = f"{os.path.splitext(file_name)[0]}_*.json"
+                success, stdout, _ = self.ssh_connection.execute_command(
+                    f"find {self.result_path_var.get()} -name '{expected_result_pattern}' -type f | sort -r | head -1"
+                )
+                
+                if success and stdout.strip():
+                    existing_result = os.path.basename(stdout.strip())
+                    self.log_message(f"Warning: Result file already exists: {existing_result}. Will look for newer file.")
+                
                 # Update progress
                 progress = int((i / total_files) * 100)
                 self.root.after(0, lambda p=progress: self.progress_var.set(p))
@@ -893,6 +903,9 @@ class ApplicationGUI:
                     impacts = file_info.get("impacts", {})
                     restarts_network = impacts.get("restarts_network", False)
                     affects_network = impacts.get("affects_wan", False) or impacts.get("affects_lan", False)
+                    
+                    # NEW: Xác định kiểu test
+                    is_network_test = affects_network or "wan" in file_name.lower() or "lan" in file_name.lower() or "network" in file_name.lower()
                     
                     if restarts_network:
                         self.log_message(f"Warning: {file_name} contains network restart operations. Extended timeout will be used.")
@@ -913,6 +926,9 @@ class ApplicationGUI:
                     self.log_message(f"File {file_name} uploaded successfully")
                     self.update_file_status(i, "Testing", "", "")
                     
+                    # NEW: Đợi một khoảng thời gian ngắn sau khi upload để đảm bảo thiết bị đã nhận file
+                    time.sleep(1)
+                    
                     # 4. Wait for result file with enhanced timeout for network tests
                     timeout = AppConfig.DEFAULT_TIMEOUT
                     if affects_network:
@@ -922,7 +938,8 @@ class ApplicationGUI:
                         base_filename=os.path.splitext(file_name)[0],
                         result_dir=self.result_path_var.get(),
                         upload_time=time.time(),
-                        timeout=timeout
+                        timeout=timeout,
+                        is_network_test=is_network_test
                     )
                     
                     # 5. Download result
@@ -936,6 +953,9 @@ class ApplicationGUI:
                         raise Exception("Failed to download result file")
                     
                     self.log_message(f"Result file {actual_result_filename} downloaded successfully")
+                    
+                    # NEW: Đợi thêm 1 giây để đảm bảo file đã được ghi đầy đủ trên máy local
+                    time.sleep(1)
                     
                     # 6. Parse result
                     try:
@@ -970,7 +990,7 @@ class ApplicationGUI:
                     )
                     
                     # Convert result format to match our expected format
-                    converted_results = self.convert_result_format(result_data)
+                    converted_results = self.convert_result_format(result_data, file_path)
                     if converted_results and file_id > 0:
                         self.database.save_test_case_results(file_id, converted_results)
                     
@@ -978,6 +998,109 @@ class ApplicationGUI:
                     self.update_detail_table_with_results(i, {"test_results": converted_results})
                     
                     self.log_message(f"File {file_name} processed successfully: {overall_result}")
+                    
+                    # NEW: Verify test has fully completed
+                    self.log_message(f"Verifying test {file_name} has fully completed...")
+                    
+                    # NEW: Kiểm tra không có quá trình test còn đang chạy trên thiết bị
+                    success, stdout, _ = self.ssh_connection.execute_command(
+                        "ps | grep -v grep | grep -i 'test\\|uci\\|/etc/init.d' || echo 'No tests running'"
+                    )
+                    
+                    if "No tests running" not in stdout:
+                        self.log_message("Warning: Processes related to testing still running on device:")
+                        for line in stdout.strip().split('\n')[:3]:  # Hiển thị tối đa 3 dòng
+                            if line and "No tests running" not in line:
+                                self.log_message(f"  - {line.strip()}")
+                        self.log_message("Waiting additional time for processes to complete...")
+                        time.sleep(5)
+                    else:
+                        self.log_message("No test processes detected. Device ready for next test.")
+                    
+                    # NEW: Đợi thêm thời gian ổn định sau các test mạng
+                    if is_network_test:
+                        stabilization_time = 15  # seconds
+                        self.log_message(f"Network test detected: Waiting {stabilization_time}s for configuration to stabilize...")
+                        
+                        # SỬA: Thay thế cách cập nhật trạng thái để tránh lỗi status_var
+                        for j in range(stabilization_time, 0, -1):
+                            if not self.processing:
+                                break
+                            # Cập nhật trạng thái an toàn
+                            status_message = f"Network stabilizing... {j}s"
+                            self.log_message(status_message)  # Log là cách an toàn
+                            
+                            # Thử cập nhật UI nhưng bỏ qua lỗi nếu có
+                            try:
+                                if hasattr(self, 'status_text'):
+                                    self.root.after(0, lambda msg=status_message: self.status_text.set(msg))
+                                elif hasattr(self, 'status_label'):
+                                    self.root.after(0, lambda msg=status_message: self.status_label.config(text=msg))
+                            except:
+                                pass  # Bỏ qua lỗi UI không ảnh hưởng đến chức năng chính
+                            
+                            self.root.update()
+                            time.sleep(1)
+                        
+                        self.log_message("Network stabilization period completed")
+                        
+                        # Kiểm tra thiết bị đã sẵn sàng chưa trước khi tiếp tục
+                        device_ready = False
+                        retry_count = 3
+                        
+                        while retry_count > 0 and not device_ready:
+                            try:
+                                # Kiểm tra kết nối mạng cơ bản
+                                success, stdout, _ = self.ssh_connection.execute_command("ping -c 1 -W 2 8.8.8.8 >/dev/null && echo 'OK'")
+                                if success and "OK" in stdout:
+                                    device_ready = True
+                                    self.log_message("Device network connectivity verified")
+                                else:
+                                    retry_count -= 1
+                                    self.log_message(f"Device network not ready, waiting... ({retry_count} attempts left)")
+                                    time.sleep(5)
+                            except Exception as e:
+                                retry_count -= 1
+                                self.log_message(f"Error checking network: {str(e)}, waiting... ({retry_count} attempts left)")
+                                time.sleep(5)
+                        
+                        # Đợi thêm thời gian cố định để đảm bảo
+                        time.sleep(5)
+                    
+                    # NEW: Kiểm tra nếu còn file tiếp theo, đợi hệ thống ổn định
+                    if i < total_files - 1:
+                        next_file = os.path.basename(self.selected_files[i+1])
+                        self.log_message(f"Preparing for next test: {next_file}")
+                        
+                        # SỬA: Thay đổi cách cập nhật trạng thái để tránh lỗi status_var
+                        wait_time = 5  # seconds
+                        self.log_message(f"Waiting {wait_time}s between tests...")
+                        
+                        for j in range(wait_time, 0, -1):
+                            if not self.processing:
+                                break
+                            status_message = f"Next test in {j}s..."
+                            self.log_message(status_message)
+                            
+                            try:
+                                if hasattr(self, 'status_text'):
+                                    self.root.after(0, lambda msg=status_message: self.status_text.set(msg))
+                                elif hasattr(self, 'status_label'):
+                                    self.root.after(0, lambda msg=status_message: self.status_label.config(text=msg))
+                            except:
+                                pass
+                            
+                            self.root.update()
+                            time.sleep(1)
+                        
+                        self.log_message("Ready for next test")
+                        
+                        # Kiểm tra lại kết nối SSH trước khi tiến hành test kế tiếp
+                        if not self.ssh_connection.is_connected():
+                            self.log_message("SSH connection lost. Attempting to reconnect before next test...")
+                            reconnect_success = self._attempt_reconnection(max_attempts=3)
+                            if not reconnect_success:
+                                raise Exception("Failed to re-establish SSH connection for next test")
                     
                 except Exception as e:
                     # Enhanced error handling
@@ -1027,7 +1150,7 @@ class ApplicationGUI:
             # Reload history
             self.root.after(0, self.load_history)
     
-    def wait_for_result_file(self, base_filename: str, result_dir: str, upload_time: float, timeout: int = 300) -> Tuple[str, str]:
+    def wait_for_result_file(self, base_filename: str, result_dir: str, upload_time: float, timeout: int = 300, is_network_test: bool = False) -> Tuple[str, str]:
         """
         Wait for any new result file to appear after test file upload
         Enhanced to handle network restart operations and ensure most recent file is selected
@@ -1083,7 +1206,8 @@ class ApplicationGUI:
             return best_file
         
         # Determine if this is a network-affecting test
-        is_network_test = any(keyword in base_filename.lower() for keyword in ["wan", "network", "interface", "restart", "reset"])
+        if not is_network_test:
+            is_network_test = any(keyword in base_filename.lower() for keyword in ["wan", "network", "interface", "restart", "reset"])
         
         # Increase timeout and retry policy for network tests
         if is_network_test:
@@ -1106,6 +1230,10 @@ class ApplicationGUI:
             if success:
                 known_files = set(f for f in stdout.strip().split('\n') if f and len(f) > 3)
                 self.log_message(f"Initial file count: {len(known_files)}")
+                
+                # NEW: Hiển thị danh sách các file mới nhất trong thư mục
+                newest_files = sorted(list(known_files))[-3:] if len(known_files) >= 3 else sorted(list(known_files))
+                self.log_message(f"Initial newest files: {', '.join(newest_files)}")
         except Exception as e:
             self.log_message(f"Could not get initial file listing: {str(e)}")
         
@@ -1162,7 +1290,20 @@ class ApplicationGUI:
                                         best_file = find_best_result_file(new_files)
                                         if best_file:
                                             file_path = f"{result_dir}/{best_file}"
+                                            
+                                            # NEW: Đợi file ổn định
+                                            self.log_message(f"Found result file, waiting 2s for it to stabilize...")
+                                            time.sleep(2)
+                                            
                                             if self._verify_file_ready(file_path):
+                                                # NEW: Ghi nhận file mới được tạo
+                                                self.log_message(f"New result file created: {best_file}")
+                                                
+                                                # NEW: Đợi thêm thời gian nếu là test mạng
+                                                if is_network_test:
+                                                    self.log_message("Network test: Waiting additional time for configuration changes to apply...")
+                                                    time.sleep(3)
+                                                    
                                                 return file_path, best_file
                                     
                                     known_files = current_files
@@ -1201,7 +1342,20 @@ class ApplicationGUI:
                     
                     if best_file:
                         file_path = f"{result_dir}/{best_file}"
+                        
+                        # NEW: Đợi file ổn định
+                        self.log_message(f"Found result file, waiting 2s for it to stabilize...")
+                        time.sleep(2)
+                        
                         if self._verify_file_ready(file_path):
+                            # NEW: Ghi nhận file mới được tạo
+                            self.log_message(f"New result file created: {best_file}")
+                            
+                            # NEW: Đợi thêm thời gian nếu là test mạng
+                            if is_network_test:
+                                self.log_message("Network test: Waiting additional time for configuration changes to apply...")
+                                time.sleep(3)
+                                
                             return file_path, best_file
                 
                 # Method 2: Latest modified file check
@@ -1218,8 +1372,21 @@ class ApplicationGUI:
                     # Check if this is a new file
                     if file_name not in known_files:
                         self.log_message(f"Found newest file via modification time: {file_name}")
-                        if base_filename.lower() in file_name.lower() and self._verify_file_ready(file_path):
-                            return file_path, file_name
+                        if base_filename.lower() in file_name.lower():
+                            # NEW: Đợi file ổn định
+                            self.log_message(f"Found result file, waiting 2s for it to stabilize...")
+                            time.sleep(2)
+                            
+                            if self._verify_file_ready(file_path):
+                                # NEW: Ghi nhận file mới được tạo
+                                self.log_message(f"New result file created: {file_name}")
+                                
+                                # NEW: Đợi thêm thời gian nếu là test mạng
+                                if is_network_test:
+                                    self.log_message("Network test: Waiting additional time for configuration changes to apply...")
+                                    time.sleep(3)
+                                    
+                                return file_path, file_name
                 
                 # Method 3: Full directory comparison
                 success, curr_stdout, _ = self.ssh_connection.execute_command(f"ls -1 {result_dir}/ 2>/dev/null")
@@ -1233,7 +1400,20 @@ class ApplicationGUI:
                         
                         if best_file:
                             file_path = f"{result_dir}/{best_file}"
+                            
+                            # NEW: Đợi file ổn định
+                            self.log_message(f"Found result file, waiting 2s for it to stabilize...")
+                            time.sleep(2)
+                            
                             if self._verify_file_ready(file_path):
+                                # NEW: Ghi nhận file mới được tạo
+                                self.log_message(f"New result file created: {best_file}")
+                                
+                                # NEW: Đợi thêm thời gian nếu là test mạng
+                                if is_network_test:
+                                    self.log_message("Network test: Waiting additional time for configuration changes to apply...")
+                                    time.sleep(3)
+                                    
                                 return file_path, best_file
                     
                     known_files = current_files
@@ -1270,6 +1450,8 @@ class ApplicationGUI:
                     
                     # Check if file exists and is readable
                     if self.ssh_connection.file_exists(file_path):
+                        # NEW: Ghi nhận file kết quả
+                        self.log_message(f"Found result file from logs: {result_filename}")
                         return file_path, result_filename
             
             # Find all JSON files in result directory and sort by modification time
