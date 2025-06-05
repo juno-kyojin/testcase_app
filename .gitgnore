@@ -1,12 +1,18 @@
-# Python cache files
+# Existing rules from previous response
 __pycache__/
 *.pyc
-
-# Temporary directories
 data/temp/
 gui/data/temp/
-
-# Logs
 logs/
 *.log
+*.tmp
+*.bak
+*.swp
 
+# PyInstaller build artifacts
+build/
+dist/
+*.spec
+app.exe
+
+*.spec

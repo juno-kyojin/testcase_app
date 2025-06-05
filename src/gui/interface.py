@@ -12,6 +12,7 @@ import tkinter as tk
 from tkinter import ttk, filedialog, messagebox
 import threading
 import time
+import datetime
 import logging
 import sqlite3
 import csv
@@ -1966,7 +1967,7 @@ class ApplicationGUI:
         self.status_canvas.itemconfig(self.status_circle, fill=actual_color)
     
     def load_history(self):
-        """Load history from database"""
+        """Load history from database with timezone conversion"""
         try:
             # Clear existing history
             for item in self.history_table.get_children():
@@ -1976,11 +1977,14 @@ class ApplicationGUI:
             history_data = self.database.get_recent_history(100)
             
             for record in history_data:
+                # Chuyển đổi timestamp từ UTC sang múi giờ địa phương
                 timestamp = record["timestamp"]
-                if " " in timestamp:
-                    date, time_str = timestamp.split(" ", 1)
+                local_timestamp = self.convert_to_local_time(timestamp)
+                
+                if " " in local_timestamp:
+                    date, time_str = local_timestamp.split(" ", 1)
                 else:
-                    date = timestamp
+                    date = local_timestamp
                     time_str = ""
                 
                 details = f"Execution time: {record['execution_time']:.1f}s" if record["execution_time"] else ""
@@ -1998,6 +2002,35 @@ class ApplicationGUI:
                 
         except Exception as e:
             self.log_message(f"Error loading history: {str(e)}")
+
+    def convert_to_local_time(self, utc_timestamp):
+        """Convert UTC timestamp to local timezone (UTC+7)"""
+        try:
+            if not utc_timestamp:
+                return ""
+                
+            # Phân tích chuỗi thời gian UTC
+            if " " in utc_timestamp:
+                utc_dt = datetime.datetime.strptime(utc_timestamp, "%Y-%m-%d %H:%M:%S")
+            else:
+                # Nếu chỉ có ngày không có giờ
+                utc_dt = datetime.datetime.strptime(utc_timestamp, "%Y-%m-%d")
+                
+            # Thêm thông tin múi giờ (UTC)
+            utc_dt = utc_dt.replace(tzinfo=datetime.timezone.utc)
+            
+            # Chuyển đổi sang múi giờ địa phương
+            local_tz = datetime.timezone(datetime.timedelta(hours=7))  # UTC+7
+            local_dt = utc_dt.astimezone(local_tz)
+            
+            # Format theo định dạng ban đầu
+            if " " in utc_timestamp:
+                return local_dt.strftime("%Y-%m-%d %H:%M:%S")
+            else:
+                return local_dt.strftime("%Y-%m-%d")
+        except Exception as e:
+            self.log_message(f"Error converting timestamp: {str(e)}")
+            return utc_timestamp  # Trả về giá trị ban đầu nếu có lỗi
     
     def check_remote_folders(self):
         """Check if remote folders exist and are accessible"""

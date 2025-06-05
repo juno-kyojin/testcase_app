@@ -1,0 +1,4 @@
+2025-06-03 10:57:51,588 - __main__ - INFO - Test Case Manager (Windows Edition) starting up...
+2025-06-03 10:57:51,627 - gui.interface - INFO - Windows application started by tobie
+2025-06-03 10:57:52,997 - network.connection - INFO - SSH connection closed
+2025-06-03 10:57:52,998 - gui.interface - INFO - Application closed normally by tobie
