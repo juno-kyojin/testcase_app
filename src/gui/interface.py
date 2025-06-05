@@ -3,7 +3,7 @@
 
 # Module: interface.py  
 # Purpose: Main GUI window for Test Case Manager (Windows Edition) - Refactored
-# Last updated: 2025-06-02 by juno-kyojin
+# Last updated: 2025-06-05 by juno-kyojin
 
 import os
 import sys
@@ -54,6 +54,7 @@ class ApplicationGUI:
         self.current_file_index = -1
         self.processing = False
         self.file_retry_count = {}
+        self.debug_mode = False  # Set to True to enable debug logs
         
         # Initialize handlers after all basic attributes are set
         self._initialize_handlers()
@@ -104,6 +105,8 @@ class ApplicationGUI:
         self.connection_status = tk.StringVar(value="Not Connected")
         self.progress_var = tk.IntVar()
         self.time_var = tk.StringVar()
+        self.status_summary = tk.StringVar(value="Ready")
+        self.log_level_var = tk.StringVar(value="All")
     
     def setup_auto_save(self):
         """Setup auto-save for settings when they change"""
@@ -112,7 +115,7 @@ class ApplicationGUI:
                 try:
                     self.database.save_setting(var_name, var.get())
                 except Exception as e:
-                    self.logger.warning(f"Auto-save failed for {var_name}: {e}")
+                    self.log_error(f"Auto-save failed for {var_name}: {e}")
             return callback
         
         self.lan_ip_var.trace('w', save_setting('lan_ip', self.lan_ip_var))
@@ -127,12 +130,111 @@ class ApplicationGUI:
             try:
                 self.utils.cleanup_temp_files()
             except Exception as e:
-                self.logger.warning(f"Cleanup task failed: {e}")
+                self.log_error(f"Cleanup task failed: {e}")
             self.root.after(3600000, cleanup_task)  # 1 hour
         
         self.root.after(300000, cleanup_task)  # Start after 5 minutes
     
-    # Delegate methods to appropriate handlers
+    # Enhanced logging methods
+    def log_message(self, message: str, log_type: str = "INFO"):
+        """Add a message to the log with timestamp and proper formatting"""
+        timestamp = time.strftime("%Y-%m-%d %H:%M:%S")
+        
+        # Định dạng dựa trên loại log
+        if log_type == "CONNECTION":
+            formatted_msg = f"[{timestamp}] 🔌 CONNECTION: {message}"
+        elif log_type == "FILE":
+            formatted_msg = f"[{timestamp}] 📄 FILE: {message}"
+        elif log_type == "RESULT":
+            formatted_msg = f"[{timestamp}] ✅ RESULT: {message}" 
+        elif log_type == "ERROR":
+            formatted_msg = f"[{timestamp}] ❌ ERROR: {message}"
+        elif log_type == "DEBUG":
+            formatted_msg = f"[{timestamp}] 🔍 DEBUG: {message}"
+        else:
+            formatted_msg = f"[{timestamp}] ℹ️ INFO: {message}"
+        
+        # Log ra logger chính thức trước
+        if log_type == "ERROR":
+            self.logger.error(message)
+        elif log_type == "DEBUG":
+            self.logger.debug(message)
+        else:
+            self.logger.info(message)
+        
+        # Sau đó kiểm tra xem log_text đã được tạo chưa
+        log_entry = formatted_msg + "\n"
+        
+        # Sử dụng getattr() để tránh AttributeError nếu log_text chưa tồn tại
+        log_text = getattr(self, 'log_text', None)
+        if log_text is not None:
+            try:
+                log_text.insert(tk.END, log_entry)
+                log_text.see(tk.END)
+            except Exception as e:
+                self.logger.error(f"Error writing to log display: {e}")
+
+    def log_connection(self, message: str):
+        """Log connection related message"""
+        self.log_message(message, "CONNECTION")
+        
+    def log_file(self, message: str):
+        """Log file operation related message"""
+        self.log_message(message, "FILE")
+        
+    def log_result(self, message: str):
+        """Log test result related message"""
+        self.log_message(message, "RESULT")
+        
+    def log_error(self, message: str):
+        """Log error message"""
+        self.log_message(message, "ERROR")
+        
+    def log_debug(self, message: str):
+        """Log debug message - only shown in debug mode"""
+        if self.debug_mode:
+            self.log_message(message, "DEBUG")
+    
+    def filter_logs(self):
+        """Filter logs based on selected log level"""
+        # Sử dụng getattr để kiểm tra an toàn
+        log_text = getattr(self, 'log_text', None)
+        log_level_var = getattr(self, 'log_level_var', None)
+        
+        if log_text is None or log_level_var is None:
+            self.logger.warning("Log text or level variable not initialized yet")
+            return
+            
+        selected_level = log_level_var.get()
+        
+        if selected_level == "All":
+            return  # No filtering needed
+        
+        # Map level name to emoji/prefix
+        level_prefix = {
+            "Connection": "🔌 CONNECTION:",
+            "File": "📄 FILE:",
+            "Result": "✅ RESULT:",
+            "Error": "❌ ERROR:",
+            "Debug": "🔍 DEBUG:",
+        }
+        
+        try:
+            # Get current log content
+            log_content = log_text.get("1.0", tk.END)
+            
+            # Clear current content
+            log_text.delete("1.0", tk.END)
+            
+            # Filter and re-insert relevant lines
+            for line in log_content.splitlines():
+                if level_prefix.get(selected_level, "") in line:
+                    log_text.insert(tk.END, line + "\n")
+            
+            # Scroll to end
+            log_text.see(tk.END)
+        except Exception as e:
+            self.logger.error(f"Error filtering logs: {e}")
     def test_connection(self):
         """Test connection using connection handler"""
         self.connection_handler.test_connection()
@@ -167,15 +269,26 @@ class ApplicationGUI:
         self.ui_components.create_status_bar()
     
     # Utility methods
-    def log_message(self, message: str):
-        """Add a message to the log with timestamp"""
-        timestamp = time.strftime("%Y-%m-%d %H:%M:%S")
-        log_entry = f"[{timestamp}] {message}\n"
-        
-        if hasattr(self, 'log_text'):
-            self.log_text.insert(tk.END, log_entry)
-            self.log_text.see(tk.END)
-        self.logger.info(message)
+    def update_status_summary(self):
+        """Update status summary with current information"""
+        try:
+            status_text = f"Connection: {self.connection_status.get()} | "
+            
+            if hasattr(self, 'selected_files'):
+                status_text += f"Files: {len(self.selected_files)} selected | "
+            
+            if self.processing:
+                if hasattr(self, 'current_file_index') and self.current_file_index >= 0:
+                    status_text += f"Processing: {self.current_file_index + 1}/{len(self.selected_files)}"
+            else:
+                status_text += "Ready"
+                
+            self.status_summary.set(status_text)
+            
+            # Schedule next update
+            self.root.after(1000, self.update_status_summary)
+        except Exception:
+            pass  # Avoid errors in status update
     
     def validate_connection_fields(self) -> bool:
         """Validate connection fields"""
@@ -266,6 +379,10 @@ class ApplicationGUI:
     def refresh_logs(self):
         """Refresh the logs display"""
         self.utils.refresh_logs()
+        
+    def debug_database(self):
+        """Debug database structure and content"""
+        self.utils.debug_database()
     
     # Help methods
     def show_documentation(self):

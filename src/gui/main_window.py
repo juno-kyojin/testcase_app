@@ -89,6 +89,10 @@ class ApplicationGUI:
         self.config_path_var = tk.StringVar(value=self.database.get_setting("config_path", "/root/config"))
         self.result_path_var = tk.StringVar(value=self.database.get_setting("result_path", "/root/result"))
         self.connection_status = tk.StringVar(value="Not Connected")
+        self.progress_var = tk.IntVar()
+        self.time_var = tk.StringVar()  # Thêm biến time_var
+        self.status_summary = tk.StringVar(value="Ready")
+        self.log_level_var = tk.StringVar(value="All")
     
     def setup_auto_save(self):
         """Setup auto-save for settings when they change"""
@@ -153,14 +157,43 @@ class ApplicationGUI:
         self.ui_components.create_status_bar()
     
     # Utility methods
-    def log_message(self, message: str):
-        """Add a message to the log with timestamp"""
+    def log_message(self, message: str, log_type: str = "INFO"):
+        """Add a message to the log with timestamp and proper formatting"""
         timestamp = time.strftime("%Y-%m-%d %H:%M:%S")
-        log_entry = f"[{timestamp}] {message}\n"
         
-        self.log_text.insert(tk.END, log_entry)
-        self.log_text.see(tk.END)
-        self.logger.info(message)
+        # Định dạng dựa trên loại log
+        if log_type == "CONNECTION":
+            formatted_msg = f"[{timestamp}] 🔌 CONNECTION: {message}"
+        elif log_type == "FILE":
+            formatted_msg = f"[{timestamp}] 📄 FILE: {message}"
+        elif log_type == "RESULT":
+            formatted_msg = f"[{timestamp}] ✅ RESULT: {message}" 
+        elif log_type == "ERROR":
+            formatted_msg = f"[{timestamp}] ❌ ERROR: {message}"
+        elif log_type == "DEBUG":
+            formatted_msg = f"[{timestamp}] 🔍 DEBUG: {message}"
+        else:
+            formatted_msg = f"[{timestamp}] ℹ️ INFO: {message}"
+        
+        # Tạo log entry trước khi sử dụng
+        log_entry = formatted_msg + "\n"
+            
+        # Log qua logger chính thức
+        if log_type == "ERROR":
+            self.logger.error(message)
+        elif log_type == "DEBUG":
+            self.logger.debug(message)
+        else:
+            self.logger.info(message)
+        
+        # Sau đó kiểm tra xem log_text đã được tạo chưa
+        log_text = getattr(self, 'log_text', None)
+        if log_text is not None:
+            try:
+                log_text.insert(tk.END, log_entry)  # Đã định nghĩa log_entry ở trên
+                log_text.see(tk.END)
+            except Exception as e:
+                self.logger.error(f"Error writing to log display: {e}")
     
     def validate_connection_fields(self) -> bool:
         """Validate connection fields"""
@@ -260,13 +293,15 @@ class ApplicationGUI:
     def show_about(self):
         """Show about dialog"""
         self.utils.show_about()
-    
+        
     def update_clock(self):
         """Update the clock in the status bar"""
         current_time = time.strftime("%Y-%m-%d %H:%M:%S")
-        self.time_var.set(current_time)
-        self.root.after(1000, self.update_clock)
-    
+        time_var = getattr(self, 'time_var', None)
+        if time_var is not None:
+            time_var.set(current_time)
+            self.root.after(1000, self.update_clock)
+        
     def on_closing(self):
         """Handle application closing with cleanup"""
         if self.processing:

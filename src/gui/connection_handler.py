@@ -1,173 +1,188 @@
-import threading
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+
+# Module: connection_handler.py
+# Purpose: Handle SSH connections for Test Case Manager
+# Last updated: 2025-06-05 by juno-kyojin
+
 import time
-import tkinter as tk
-from tkinter import messagebox
-from .config import AppConfig
+import threading
+from typing import Tuple, List
 
 class ConnectionHandler:
     def __init__(self, gui):
         self.gui = gui
         self.ssh_connection = gui.ssh_connection
-        self.database = gui.database
-        # Remove any references to other handlers during initialization
-        
+    
     def test_connection(self):
-        """Enhanced connection test with retry logic"""
+        """Test SSH connection to remote device"""
         if not self.gui.validate_connection_fields():
             return
-        
+            
+        # Update UI
         self.gui.connection_status.set("Connecting...")
         self.gui.update_status_circle("yellow")
-        self.gui.log_message("Testing connection to " + self.gui.lan_ip_var.get() + "...")
         
-        threading.Thread(target=self._test_connection_thread, daemon=True).start()
+        # Start connection test in background thread
+        threading.Thread(target=self._run_connection_test, daemon=True).start()
     
-    def _test_connection_thread(self):
-        """Connection test thread with enhanced error handling"""
-        max_attempts = AppConfig.MAX_RECONNECT_ATTEMPTS
-        attempt_delay = AppConfig.CONNECTION_RETRY_DELAY
-        
-        for attempt in range(1, max_attempts + 1):
-            try:
-                self.gui.root.after(0, lambda a=attempt: self.gui.log_message(f"Connection attempt {a}/{max_attempts}..."))
-                
-                success = self.ssh_connection.connect(
-                    hostname=self.gui.lan_ip_var.get(),
-                    username=self.gui.username_var.get(),
-                    password=self.gui.password_var.get(),
-                    timeout=AppConfig.SSH_CONNECT_TIMEOUT
-                )
-                
-                if success:
-                    if self._verify_remote_paths():
-                        self._handle_connection_success()
-                    else:
-                        self._handle_connection_failure("Remote paths not accessible")
-                    return
-                else:
-                    if attempt < max_attempts:
-                        self.gui.root.after(0, lambda: self.gui.log_message(f"Attempt {attempt} failed, retrying in {attempt_delay}s..."))
-                        time.sleep(attempt_delay)
-                        attempt_delay *= 2
-                    else:
-                        self._handle_connection_failure("Authentication failed after all attempts")
-                        
-            except Exception as e:
-                error_msg = f"Connection error on attempt {attempt}: {str(e)}"
-                if attempt < max_attempts:
-                    self.gui.root.after(0, lambda msg=error_msg: self.gui.log_message(f"{msg}, retrying..."))
-                    time.sleep(attempt_delay)
-                    attempt_delay *= 2
-                else:
-                    self._handle_connection_failure(error_msg)
-
-    def _verify_remote_paths(self) -> bool:
-        """Verify remote paths are accessible"""
-        paths = [
-            (self.gui.config_path_var.get(), "Config path"),
-            (self.gui.result_path_var.get(), "Result path")
-        ]
-        
-        for path, description in paths:
-            success, stdout, stderr = self.ssh_connection.execute_command(f"test -d '{path}' && test -w '{path}'")
-            if not success:
-                self.gui.root.after(0, lambda p=path, d=description: self.gui.log_message(f"{d} not accessible: {p}"))
-                return False
+    def _run_connection_test(self):
+        """Run actual connection test in background"""
+        try:
+            hostname = self.gui.lan_ip_var.get()
+            username = self.gui.username_var.get()
+            password = self.gui.password_var.get()
             
-        self.gui.root.after(0, lambda: self.gui.log_message("All remote paths verified"))
-        return True
-
-    def _handle_connection_success(self):
-        """Handle successful connection"""
-        self.database.log_connection(
-            self.gui.lan_ip_var.get(), 
-            "Connected", 
-            "Connection test successful with path verification"
-        )
-        
-        self.gui.root.after(0, lambda: self.gui.connection_status.set("Connected"))
-        self.gui.root.after(0, lambda: self.gui.update_status_circle("green"))
-        self.gui.root.after(0, lambda: self.gui.log_message("Connection successful - All systems ready"))
-        self.gui.root.after(0, lambda: messagebox.showinfo("Connection", "Connection successful!\nRemote paths verified."))
-
-    def _handle_connection_failure(self, error_msg: str):
-        """Handle connection failure"""
-        self.database.log_connection(
-            self.gui.lan_ip_var.get(), 
-            "Failed", 
-            error_msg
-        )
-        
-        self.gui.root.after(0, lambda: self.gui.connection_status.set("Connection failed"))
-        self.gui.root.after(0, lambda: self.gui.update_status_circle("red"))
-        self.gui.root.after(0, lambda: self.gui.log_message(f"Connection failed: {error_msg}"))
-        self.gui.root.after(0, lambda: messagebox.showerror("Connection Failed", f"Unable to connect:\n{error_msg}\n\nPlease check:\n• IP address and network connectivity\n• Username and password\n• Remote directory permissions"))
-
-    def attempt_reconnection(self) -> bool:
-        """Attempt to reconnect SSH"""
-        self.gui.log_message("Attempting to reconnect...")
-        
-        for attempt in range(AppConfig.MAX_RECONNECT_ATTEMPTS):
-            try:
+            self.gui.log_connection(f"Testing connection to {hostname}...")
+            
+            # Ensure we're disconnected first
+            self.ssh_connection.disconnect()
+            
+            # Try to connect with retries
+            max_attempts = 3
+            for attempt in range(1, max_attempts + 1):
+                self.gui.log_connection(f"Connection attempt {attempt}/{max_attempts}...")
+                
                 success = self.ssh_connection.connect(
-                    hostname=self.gui.lan_ip_var.get(),
-                    username=self.gui.username_var.get(),
-                    password=self.gui.password_var.get(),
+                    hostname=hostname,
+                    username=username,
+                    password=password,
                     timeout=10
                 )
                 
                 if success:
-                    self.gui.log_message("Reconnection successful")
-                    self.gui.root.after(0, lambda: self.gui.update_status_circle("green"))
-                    return True
-                else:
-                    time.sleep(2)
+                    break
                     
-            except Exception as e:
-                self.gui.log_message(f"Reconnection attempt {attempt + 1} failed: {str(e)}")
-                time.sleep(2)
-        
-        self.gui.log_message("All reconnection attempts failed")
-        self.gui.root.after(0, lambda: self.gui.update_status_circle("red"))
-        return False
+                if attempt < max_attempts:
+                    time.sleep(1)  # Wait before retry
+            
+            # If not connected after all attempts
+            if not self.ssh_connection.is_connected():
+                self.gui.root.after(0, lambda: self.gui.connection_status.set("Connection Failed"))
+                self.gui.root.after(0, lambda: self.gui.update_status_circle("red"))
+                self.gui.log_error("Connection failed after multiple attempts")
+                return
+            
+            # Verify required paths exist
+            paths_exist = self.check_remote_folders()
+            
+            if paths_exist:
+                self.gui.root.after(0, lambda: self.gui.connection_status.set("Connected"))
+                self.gui.root.after(0, lambda: self.gui.update_status_circle("green"))
+                self.gui.log_connection("Connection successful - All systems ready")
+            else:
+                self.gui.root.after(0, lambda: self.gui.connection_status.set("Path Error"))
+                self.gui.root.after(0, lambda: self.gui.update_status_circle("yellow"))
+                self.gui.log_error("Connection OK but required paths are missing")
+            
+        except Exception as e:
+            self.gui.root.after(0, lambda: self.gui.connection_status.set("Error"))
+            self.gui.root.after(0, lambda: self.gui.update_status_circle("red"))
+            self.gui.log_error(f"Connection test error: {str(e)}")
     
-    def check_remote_folders(self):
-        """Check if remote folders exist and are accessible"""
-        if not self.gui.validate_connection_fields():
-            return
-        
-        self.gui.log_message("Checking remote folders...")
-        
-        def _check_folders():
-            try:
-                if not self.ssh_connection.is_connected():
-                    success = self.ssh_connection.connect(
-                        hostname=self.gui.lan_ip_var.get(),
-                        username=self.gui.username_var.get(),
-                        password=self.gui.password_var.get()
-                    )
-                    if not success:
-                        raise Exception("Failed to connect")
+    def check_remote_folders(self) -> bool:
+        """Check if required remote folders exist"""
+        try:
+            if not self.gui.validate_connection_fields():
+                return False
                 
-                config_path = self.gui.config_path_var.get()
-                success, stdout, stderr = self.ssh_connection.execute_command(f"ls -ld {config_path}")
+            if not self.ssh_connection.is_connected():
+                hostname = self.gui.lan_ip_var.get()
+                username = self.gui.username_var.get()
+                password = self.gui.password_var.get()
+                
+                success = self.ssh_connection.connect(
+                    hostname=hostname,
+                    username=username,
+                    password=password,
+                    timeout=10
+                )
                 
                 if not success:
-                    raise Exception(f"Config folder not accessible: {stderr}")
+                    self.gui.log_error("Cannot check folders: SSH connection failed")
+                    return False
+            
+            # Check required paths
+            config_path = self.gui.config_path_var.get()
+            result_path = self.gui.result_path_var.get()
+            
+            # Verify config path exists
+            cmd_config = f"test -d {config_path} && echo 'exists' || echo 'missing'"
+            success, output, _ = self.ssh_connection.execute_command(cmd_config)
+            config_exists = success and output.strip() == "exists"
+            
+            if not config_exists:
+                self.gui.log_error(f"Config path does not exist: {config_path}")
+                # Try to create it
+                cmd_mkdir = f"mkdir -p {config_path}"
+                success, _, _ = self.ssh_connection.execute_command(cmd_mkdir)
+                if success:
+                    self.gui.log_connection(f"Created missing config directory: {config_path}")
+                    config_exists = True
+                else:
+                    self.gui.log_error(f"Failed to create config directory: {config_path}")
+            
+            # Verify result path exists
+            cmd_result = f"test -d {result_path} && echo 'exists' || echo 'missing'"
+            success, output, _ = self.ssh_connection.execute_command(cmd_result)
+            result_exists = success and output.strip() == "exists"
+            
+            if not result_exists:
+                self.gui.log_error(f"Result path does not exist: {result_path}")
+                # Try to create it
+                cmd_mkdir = f"mkdir -p {result_path}"
+                success, _, _ = self.ssh_connection.execute_command(cmd_mkdir)
+                if success:
+                    self.gui.log_connection(f"Created missing result directory: {result_path}")
+                    result_exists = True
+                else:
+                    self.gui.log_error(f"Failed to create result directory: {result_path}")
+            
+            # Log result
+            if config_exists and result_exists:
+                self.gui.log_connection("All remote paths verified")
+                return True
+            else:
+                missing = []
+                if not config_exists:
+                    missing.append(f"config path ({config_path})")
+                if not result_exists:
+                    missing.append(f"result path ({result_path})")
+                    
+                self.gui.log_error(f"Missing remote paths: {', '.join(missing)}")
+                return False
+            
+        except Exception as e:
+            self.gui.log_error(f"Error checking remote folders: {str(e)}")
+            return False
+
+    def get_remote_file_list(self, remote_dir: str) -> List[str]:
+        """Get list of files in a remote directory"""
+        try:
+            if not self.ssh_connection.is_connected():
+                self.gui.log_error("Cannot get file list: SSH connection not established")
+                return []
                 
-                result_path = self.gui.result_path_var.get()
-                success, stdout, stderr = self.ssh_connection.execute_command(f"ls -ld {result_path}")
+            cmd = f"ls -la {remote_dir} 2>/dev/null || echo 'Error: Directory not found'"
+            success, output, _ = self.ssh_connection.execute_command(cmd)
+            
+            if not success or "Error:" in output:
+                self.gui.log_error(f"Failed to list directory {remote_dir}")
+                return []
                 
-                if not success:
-                    raise Exception(f"Result folder not accessible: {stderr}")
-                
-                message = f"Both folders are accessible:\n• {config_path}\n• {result_path}"
-                self.gui.root.after(0, lambda: messagebox.showinfo("Folder Check", message))
-                self.gui.root.after(0, lambda: self.gui.log_message("Remote folders check successful"))
-                
-            except Exception as e:
-                error_msg = f"Folder check failed: {str(e)}"
-                self.gui.root.after(0, lambda: messagebox.showerror("Folder Check", error_msg))
-                self.gui.root.after(0, lambda: self.gui.log_message(error_msg))
-        
-        threading.Thread(target=_check_folders, daemon=True).start()
+            # Parse ls output
+            files = []
+            for line in output.splitlines():
+                if line.startswith("total") or not line.strip():
+                    continue
+                parts = line.split()
+                if len(parts) >= 9:
+                    file_name = " ".join(parts[8:])
+                    if file_name not in [".", ".."]:
+                        files.append(file_name)
+            
+            return files
+            
+        except Exception as e:
+            self.gui.log_error(f"Error getting remote file list: {str(e)}")
+            return []

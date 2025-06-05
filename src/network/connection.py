@@ -13,7 +13,7 @@ from typing import Optional, Tuple
 
 class SSHConnection:
     def __init__(self):
-        self.client = None
+        self.client: Optional[paramiko.SSHClient] = None
         self.logger = logging.getLogger(__name__)
         self.connected = False
         self.hostname = None
@@ -83,7 +83,10 @@ class SSHConnection:
             return False
         
         try:
-            stdin, stdout, stderr = self.client.exec_command("echo 'keepalive'", timeout=3)
+            # Sử dụng biến trung gian để Pylance hiểu rằng client không phải None
+            client = self.client  # Tại đây, type của client là paramiko.SSHClient
+            
+            stdin, stdout, stderr = client.exec_command("echo 'keepalive'", timeout=3)
             result = stdout.read().decode().strip()
             return result == "keepalive"
         except:
@@ -91,23 +94,41 @@ class SSHConnection:
             return False
     
     def execute_command(self, command: str, timeout: int = 30) -> Tuple[bool, str, str]:
-        """Execute a command on the remote server"""
-        if not self.is_connected():
-            return False, "", "Not connected"
+        """Execute a command on the remote server with auto-retry"""
+        retry_count = 0
+        max_retries = 2  # Số lần thử lại tối đa
         
-        try:
-            stdin, stdout, stderr = self.client.exec_command(command, timeout=timeout)
+        while retry_count <= max_retries:
+            if not self.is_connected():
+                return False, "", "Not connected"
             
-            stdout_data = stdout.read().decode('utf-8', errors='replace')
-            stderr_data = stderr.read().decode('utf-8', errors='replace')
-            exit_code = stdout.channel.recv_exit_status()
-            
-            success = exit_code == 0
-            return success, stdout_data, stderr_data
-            
-        except Exception as e:
-            self.logger.error(f"Command execution error: {e}")
-            return False, "", str(e)
+            try:
+                client = self.client
+                if client is None:
+                    return False, "", "Client is None"
+                    
+                stdin, stdout, stderr = client.exec_command(command, timeout=timeout)
+                
+                stdout_data = stdout.read().decode('utf-8', errors='replace')
+                stderr_data = stderr.read().decode('utf-8', errors='replace')
+                exit_code = stdout.channel.recv_exit_status()
+                
+                success = exit_code == 0
+                return success, stdout_data, stderr_data
+                
+            except Exception as e:
+                retry_count += 1
+                error_msg = f"Command execution error: {e}"
+                
+                # Nếu đã hết số lần thử, hoặc lỗi khác timeout, trả về lỗi
+                if retry_count > max_retries or "timed out" not in str(e).lower():
+                    self.logger.error(error_msg)
+                    return False, "", str(e)
+                
+                # Đánh dấu kết nối đã mất để kích hoạt việc kết nối lại
+                self.connected = False
+                self.logger.warning(f"{error_msg} - Retrying ({retry_count}/{max_retries})...")
+                time.sleep(2)  # Đợi một chút trước khi thử lại
     
     def ensure_remote_directory(self, remote_dir: str) -> bool:
         """Ensure remote directory exists"""

@@ -164,13 +164,14 @@ class TestDatabase:
                 )
             )
             
-            # Get the inserted ID
+            # Get the inserted ID and ensure it's an int
             result_id = cursor.lastrowid
+            final_id = result_id if result_id is not None else -1
             
             conn.commit()
             conn.close()
             
-            return result_id
+            return final_id
             
         except Exception as e:
             self.logger.error(f"Error saving test result: {e}")
@@ -286,40 +287,46 @@ class TestDatabase:
             self.logger.error(f"Error retrieving filtered history: {e}")
             return []
     
-    def get_test_details(self, result_id=None, file_name=None) -> List[Dict]:
-        """Get detailed test results by result_id or file_name (with timestamp)"""
+    def get_test_details(self, file_name, timestamp=None):
+        """Get test case details for a specific file and timestamp"""
         try:
-            conn = sqlite3.connect(self.db_path)
-            conn.row_factory = sqlite3.Row
-            cursor = conn.cursor()
+            # Sử dụng self.db_path thay vì hardcode đường dẫn
+            connection = sqlite3.connect(self.db_path)
+            cursor = connection.cursor()
             
-            # First get the result ID if not provided
-            if not result_id and file_name:
-                cursor.execute(
-                    "SELECT id, timestamp FROM test_results WHERE file_name = ? ORDER BY timestamp DESC LIMIT 1",
-                    (file_name,)
-                )
-                
-                result = cursor.fetchone()
-                if not result:
-                    return []
+            query = """
+            SELECT tc.service, tc.action, tc.status, tc.details, tc.execution_time
+            FROM test_cases tc
+            JOIN test_results tr ON tc.result_id = tr.id
+            WHERE tr.file_name = ?
+            """
+            
+            params = [file_name]
+            
+            if timestamp:
+                query += " AND tr.timestamp LIKE ?"
+                params.append(f"{timestamp}%")
                     
-                result_id = result["id"]
-                self.logger.info(f"Found result ID {result_id} for file {file_name} from {result['timestamp']}")
+            query += " ORDER BY tc.id"
             
-            # Then get all test cases
-            cursor.execute(
-                "SELECT * FROM test_cases WHERE result_id = ? ORDER BY id",
-                (result_id,)
-            )
+            cursor.execute(query, params)
+            results = cursor.fetchall()
             
-            test_cases = [dict(row) for row in cursor.fetchall()]
-            conn.close()
-            
-            return test_cases
-        
+            details = []
+            for row in results:
+                details.append({
+                    "service": row[0],
+                    "action": row[1],
+                    "status": row[2],
+                    "details": row[3],
+                    "execution_time": row[4]
+                })
+                    
+            connection.close()
+            return details
+                
         except Exception as e:
-            self.logger.error(f"Error retrieving test details: {e}")
+            self.logger.error(f"Error getting test details: {e}")
             return []
     
     def clear_history(self) -> bool:
