@@ -1,18 +1,43 @@
-# Existing rules from previous response
-__pycache__/
-*.pyc
-data/temp/
-gui/data/temp/
-logs/
-*.log
-*.tmp
-*.bak
-*.swp
-
-# PyInstaller build artifacts
+# Build directories
 build/
 dist/
-*.spec
-app.exe
 
+# Data directory
+data/
+
+# PyInstaller spec files
 *.spec
+
+# Python compiled files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Virtual environment
+venv/
+env/
+ENV/
+
+# IDE files
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS generated files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# Logs
+*.log
+logs/
+
+# Temporary files
+*.tmp
+*.temp
+temp/
