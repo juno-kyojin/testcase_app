@@ -3220,3 +3220,686 @@
 2025-06-05 10:02:28,777 - gui.interface - INFO - Processing file 1/3: ping.json
 2025-06-05 10:02:28,880 - gui.interface - INFO - Warning: Result file already exists: ping_20250605_095629.json. Will look for newer file.
 2025-06-05 10:02:28,886 - gui.interface - INFO - Processing error: ApplicationGUI.update_file_status() takes 4 positional arguments but 5 were given
+2025-06-05 10:06:39,494 - __main__ - INFO - Test Case Manager (Windows Edition) starting up...
+2025-06-05 10:06:39,531 - gui.interface - INFO - Windows application started by tobie
+2025-06-05 10:06:44,405 - gui.interface - INFO - Testing connection to 192.168.88.1...
+2025-06-05 10:06:44,407 - gui.interface - INFO - Connection attempt 1/3...
+2025-06-05 10:06:44,408 - network.connection - INFO - SSH connection closed
+2025-06-05 10:06:44,408 - network.connection - INFO - Connecting to 192.168.88.1:22 as root
+2025-06-05 10:06:44,424 - paramiko.transport - INFO - Connected (version 2.0, client dropbear)
+2025-06-05 10:06:44,544 - paramiko.transport - INFO - Authentication (password) successful!
+2025-06-05 10:06:44,556 - network.connection - INFO - SSH connection established successfully
+2025-06-05 10:06:44,727 - gui.interface - INFO - All remote paths verified
+2025-06-05 10:06:44,739 - gui.interface - INFO - Connection successful - All systems ready
+2025-06-05 10:06:47,957 - gui.interface - INFO - File selection cleared
+2025-06-05 10:06:47,961 - gui.interface - INFO - Selected 3 valid files
+2025-06-05 10:06:49,808 - gui.interface - INFO - Establishing SSH connection...
+2025-06-05 10:06:49,825 - gui.interface - INFO - Processing file 1/3: ping.json
+2025-06-05 10:06:49,919 - gui.interface - INFO - Warning: Result file already exists: ping_20250605_095629.json. Will look for newer file.
+2025-06-05 10:06:49,923 - network.connection - INFO - Attempting to upload: C:/Users/tobie/Desktop/APP/testcase_app/test/ping.json -> /root/config\ping.json
+2025-06-05 10:06:50,125 - network.connection - INFO - Directory ensured: /root/config
+2025-06-05 10:06:50,246 - network.connection - INFO - File uploaded via SSH exec: C:/Users/tobie/Desktop/APP/testcase_app/test/ping.json -> /root/config/ping.json
+2025-06-05 10:06:50,250 - gui.interface - INFO - File ping.json uploaded successfully
+2025-06-05 10:06:51,254 - gui.interface - INFO - Waiting for result file in /root/result (timeout: 120s)
+2025-06-05 10:06:51,308 - gui.interface - INFO - Initial file count: 9
+2025-06-05 10:06:51,315 - gui.interface - INFO - Initial newest files: wan_delete_20250603_101803.json, wan_delete_20250603_103633.json, wan_delete_20250605_095733.json
+2025-06-05 10:06:51,452 - gui.interface - INFO - Found 3 files via pattern search
+2025-06-05 10:06:51,453 - gui.interface - INFO - Found result file, waiting 2s for it to stabilize...
+2025-06-05 10:06:54,156 - gui.interface - INFO - New result file created: ping_20250605_095629.json
+2025-06-05 10:06:54,157 - network.connection - INFO - Attempting to download: /root/result/ping_20250605_095629.json -> data/temp/results\ping_20250605_095629.json
+2025-06-05 10:06:54,414 - network.connection - INFO - File downloaded via SSH exec: /root/result/ping_20250605_095629.json -> data\temp\results\ping_20250605_095629.json
+2025-06-05 10:06:54,415 - gui.interface - INFO - Result file ping_20250605_095629.json downloaded successfully
+2025-06-05 10:06:55,443 - gui.interface - INFO - Extracted from filename: service=ping, action=
+2025-06-05 10:06:55,444 - gui.interface - INFO - Converted result: ping. = pass
+2025-06-05 10:06:55,445 - storage.database - INFO - Extracted from filename ping.json: service=ping, action=
+2025-06-05 10:06:55,445 - storage.database - INFO - Total 1 test cases saved for result ID 90
+2025-06-05 10:06:55,452 - gui.interface - INFO - File ping.json processed successfully: Pass
+2025-06-05 10:06:55,452 - gui.interface - INFO - Verifying test ping.json has fully completed...
+2025-06-05 10:06:55,537 - gui.interface - INFO - Warning: Processes related to testing still running on device:
+2025-06-05 10:06:55,538 - gui.interface - INFO -   - 3852 root         0 Z    [uci]
+2025-06-05 10:06:55,538 - gui.interface - INFO -   - 3864 root         0 Z    [uci]
+2025-06-05 10:06:55,538 - gui.interface - INFO - Waiting additional time for processes to complete...
+2025-06-05 10:07:00,539 - gui.interface - INFO - Preparing for next test: wan_create.json
+2025-06-05 10:07:00,540 - gui.interface - INFO - Waiting 5s between tests...
+2025-06-05 10:07:00,540 - gui.interface - INFO - Next test in 5s...
+2025-06-05 10:07:01,542 - gui.interface - INFO - Next test in 4s...
+2025-06-05 10:07:02,543 - gui.interface - INFO - Next test in 3s...
+2025-06-05 10:07:03,544 - gui.interface - INFO - Next test in 2s...
+2025-06-05 10:07:04,545 - gui.interface - INFO - Next test in 1s...
+2025-06-05 10:07:05,546 - gui.interface - INFO - Ready for next test
+2025-06-05 10:07:05,556 - gui.interface - INFO - Processing file 2/3: wan_create.json
+2025-06-05 10:07:05,683 - gui.interface - INFO - Warning: Result file already exists: wan_create_20250605_095642.json. Will look for newer file.
+2025-06-05 10:07:05,685 - network.connection - INFO - Attempting to upload: C:/Users/tobie/Desktop/APP/testcase_app/test/wan_create.json -> /root/config\wan_create.json
+2025-06-05 10:07:05,886 - network.connection - INFO - Directory ensured: /root/config
+2025-06-05 10:07:05,986 - network.connection - INFO - File uploaded via SSH exec: C:/Users/tobie/Desktop/APP/testcase_app/test/wan_create.json -> /root/config/wan_create.json
+2025-06-05 10:07:05,987 - gui.interface - INFO - File wan_create.json uploaded successfully
+2025-06-05 10:07:06,988 - gui.interface - INFO - Network-affecting test detected: wan_create. Using extended timeout and retry policy.
+2025-06-05 10:07:06,988 - gui.interface - INFO - Waiting for result file in /root/result (timeout: 300s)
+2025-06-05 10:07:10,094 - gui.interface - INFO - Connection lost - likely due to network restart on device
+2025-06-05 10:07:16,569 - paramiko.transport - WARNING - Success for unrequested channel! [??]
+2025-06-05 10:07:18,097 - gui.interface - INFO - [11s] Waiting 2s before reconnection attempt...
+2025-06-05 10:07:20,097 - gui.interface - INFO - Attempting to reconnect (1/12)...
+2025-06-05 10:07:20,098 - network.connection - INFO - SSH connection closed
+2025-06-05 10:07:20,098 - network.connection - INFO - Connecting to 192.168.88.1:22 as root
+2025-06-05 10:07:20,111 - paramiko.transport - INFO - Connected (version 2.0, client dropbear)
+2025-06-05 10:07:20,221 - paramiko.transport - INFO - Authentication (password) successful!
+2025-06-05 10:07:20,231 - network.connection - INFO - SSH connection established successfully
+2025-06-05 10:07:20,231 - gui.interface - INFO - Successfully reconnected!
+2025-06-05 10:07:20,318 - gui.interface - INFO - Found 11 new files after reconnect: wan_create_20250603_103542.json, ping_20250603_101647.json, wan_delete_20250603_101803.json
+2025-06-05 10:07:20,319 - gui.interface - INFO - Found result file, waiting 2s for it to stabilize...
+2025-06-05 10:07:22,476 - gui.interface - INFO - New result file created: wan_create_20250605_100715.json
+2025-06-05 10:07:22,477 - gui.interface - INFO - Network test: Waiting additional time for configuration changes to apply...
+2025-06-05 10:07:25,478 - network.connection - INFO - Attempting to download: /root/result/wan_create_20250605_100715.json -> data/temp/results\wan_create_20250605_100715.json
+2025-06-05 10:07:25,708 - network.connection - INFO - File downloaded via SSH exec: /root/result/wan_create_20250605_100715.json -> data\temp\results\wan_create_20250605_100715.json
+2025-06-05 10:07:27,041 - gui.interface - INFO - Result file wan_create_20250605_100715.json downloaded successfully
+2025-06-05 10:07:28,072 - gui.interface - INFO - Extracted from filename: service=wan, action=create
+2025-06-05 10:07:28,073 - gui.interface - INFO - Converted result: wan.create = pass
+2025-06-05 10:07:28,074 - storage.database - INFO - Extracted from filename wan_create.json: service=wan, action=create
+2025-06-05 10:07:28,075 - storage.database - INFO - Total 1 test cases saved for result ID 92
+2025-06-05 10:07:28,083 - gui.interface - INFO - File wan_create.json processed successfully: Pass
+2025-06-05 10:07:28,084 - gui.interface - INFO - Verifying test wan_create.json has fully completed...
+2025-06-05 10:07:28,187 - gui.interface - INFO - Warning: Processes related to testing still running on device:
+2025-06-05 10:07:28,188 - gui.interface - INFO -   - 1210 root      1256 S    /bin/sh /etc/rc.common /etc/init.d/network running
+2025-06-05 10:07:28,189 - gui.interface - INFO -   - 3852 root         0 Z    [uci]
+2025-06-05 10:07:28,190 - gui.interface - INFO -   - 3864 root         0 Z    [uci]
+2025-06-05 10:07:28,192 - gui.interface - INFO - Waiting additional time for processes to complete...
+2025-06-05 10:07:33,193 - gui.interface - INFO - Network test detected: Waiting 15s for configuration to stabilize...
+2025-06-05 10:07:33,195 - gui.interface - INFO - Network stabilizing... 15s
+2025-06-05 10:07:34,197 - gui.interface - INFO - Network stabilizing... 14s
+2025-06-05 10:07:35,199 - gui.interface - INFO - Network stabilizing... 13s
+2025-06-05 10:07:36,201 - gui.interface - INFO - Network stabilizing... 12s
+2025-06-05 10:07:37,204 - gui.interface - INFO - Network stabilizing... 11s
+2025-06-05 10:07:38,207 - gui.interface - INFO - Network stabilizing... 10s
+2025-06-05 10:07:39,210 - gui.interface - INFO - Network stabilizing... 9s
+2025-06-05 10:07:40,213 - gui.interface - INFO - Network stabilizing... 8s
+2025-06-05 10:07:41,216 - gui.interface - INFO - Network stabilizing... 7s
+2025-06-05 10:07:42,219 - gui.interface - INFO - Network stabilizing... 6s
+2025-06-05 10:07:43,221 - gui.interface - INFO - Network stabilizing... 5s
+2025-06-05 10:07:44,224 - gui.interface - INFO - Network stabilizing... 4s
+2025-06-05 10:07:45,227 - gui.interface - INFO - Network stabilizing... 3s
+2025-06-05 10:07:46,229 - gui.interface - INFO - Network stabilizing... 2s
+2025-06-05 10:07:47,231 - gui.interface - INFO - Network stabilizing... 1s
+2025-06-05 10:07:48,234 - gui.interface - INFO - Network stabilization period completed
+2025-06-05 10:07:48,390 - gui.interface - INFO - Device network connectivity verified
+2025-06-05 10:07:53,392 - gui.interface - INFO - Preparing for next test: wan_delete.json
+2025-06-05 10:07:53,394 - gui.interface - INFO - Waiting 5s between tests...
+2025-06-05 10:07:53,395 - gui.interface - INFO - Next test in 5s...
+2025-06-05 10:07:54,397 - gui.interface - INFO - Next test in 4s...
+2025-06-05 10:07:55,400 - gui.interface - INFO - Next test in 3s...
+2025-06-05 10:07:56,401 - gui.interface - INFO - Next test in 2s...
+2025-06-05 10:07:57,403 - gui.interface - INFO - Next test in 1s...
+2025-06-05 10:07:58,406 - gui.interface - INFO - Ready for next test
+2025-06-05 10:07:58,417 - gui.interface - INFO - Processing file 3/3: wan_delete.json
+2025-06-05 10:07:58,516 - gui.interface - INFO - Warning: Result file already exists: wan_delete_20250605_095733.json. Will look for newer file.
+2025-06-05 10:07:58,518 - network.connection - INFO - Attempting to upload: C:/Users/tobie/Desktop/APP/testcase_app/test/wan_delete.json -> /root/config\wan_delete.json
+2025-06-05 10:07:58,711 - network.connection - INFO - Directory ensured: /root/config
+2025-06-05 10:07:58,819 - network.connection - INFO - File uploaded via SSH exec: C:/Users/tobie/Desktop/APP/testcase_app/test/wan_delete.json -> /root/config/wan_delete.json
+2025-06-05 10:07:58,821 - gui.interface - INFO - File wan_delete.json uploaded successfully
+2025-06-05 10:07:59,824 - gui.interface - INFO - Network-affecting test detected: wan_delete. Using extended timeout and retry policy.
+2025-06-05 10:07:59,825 - gui.interface - INFO - Waiting for result file in /root/result (timeout: 300s)
+2025-06-05 10:08:02,930 - gui.interface - INFO - Connection lost - likely due to network restart on device
+2025-06-05 10:08:10,933 - gui.interface - INFO - [11s] Waiting 2s before reconnection attempt...
+2025-06-05 10:08:12,935 - gui.interface - INFO - Attempting to reconnect (1/12)...
+2025-06-05 10:08:12,937 - network.connection - INFO - SSH connection closed
+2025-06-05 10:08:12,937 - network.connection - INFO - Connecting to 192.168.88.1:22 as root
+2025-06-05 10:08:12,956 - paramiko.transport - INFO - Connected (version 2.0, client dropbear)
+2025-06-05 10:08:13,047 - paramiko.transport - INFO - Authentication (password) successful!
+2025-06-05 10:08:13,069 - network.connection - INFO - SSH connection established successfully
+2025-06-05 10:08:13,071 - gui.interface - INFO - Successfully reconnected!
+2025-06-05 10:08:13,170 - gui.interface - INFO - Found 12 new files after reconnect: wan_create_20250603_103542.json, ping_20250603_101647.json, wan_delete_20250603_101803.json
+2025-06-05 10:08:13,172 - gui.interface - INFO - Found result file, waiting 2s for it to stabilize...
+2025-06-05 10:08:15,331 - gui.interface - INFO - New result file created: wan_delete_20250605_100808.json
+2025-06-05 10:08:15,333 - gui.interface - INFO - Network test: Waiting additional time for configuration changes to apply...
+2025-06-05 10:08:18,334 - network.connection - INFO - Attempting to download: /root/result/wan_delete_20250605_100808.json -> data/temp/results\wan_delete_20250605_100808.json
+2025-06-05 10:08:18,557 - network.connection - INFO - File downloaded via SSH exec: /root/result/wan_delete_20250605_100808.json -> data\temp\results\wan_delete_20250605_100808.json
+2025-06-05 10:08:18,558 - gui.interface - INFO - Result file wan_delete_20250605_100808.json downloaded successfully
+2025-06-05 10:08:19,584 - gui.interface - INFO - Extracted from filename: service=wan, action=delete
+2025-06-05 10:08:19,586 - gui.interface - INFO - Converted result: wan.delete = pass
+2025-06-05 10:08:19,586 - storage.database - INFO - Extracted from filename wan_delete.json: service=wan, action=delete
+2025-06-05 10:08:19,587 - storage.database - INFO - Total 1 test cases saved for result ID 94
+2025-06-05 10:08:19,595 - gui.interface - INFO - File wan_delete.json processed successfully: Pass
+2025-06-05 10:08:19,596 - gui.interface - INFO - Verifying test wan_delete.json has fully completed...
+2025-06-05 10:08:19,706 - gui.interface - INFO - Warning: Processes related to testing still running on device:
+2025-06-05 10:08:19,709 - gui.interface - INFO -   - 1485 root         0 Z    [uci]
+2025-06-05 10:08:19,710 - gui.interface - INFO -   - 1498 root         0 Z    [uci]
+2025-06-05 10:08:19,712 - gui.interface - INFO -   - 3293 root      1256 S    /bin/sh /etc/rc.common /etc/init.d/network running
+2025-06-05 10:08:19,714 - gui.interface - INFO - Waiting additional time for processes to complete...
+2025-06-05 10:08:24,716 - gui.interface - INFO - Network test detected: Waiting 15s for configuration to stabilize...
+2025-06-05 10:08:24,718 - gui.interface - INFO - Network stabilizing... 15s
+2025-06-05 10:08:25,721 - gui.interface - INFO - Network stabilizing... 14s
+2025-06-05 10:08:26,725 - gui.interface - INFO - Network stabilizing... 13s
+2025-06-05 10:08:27,728 - gui.interface - INFO - Network stabilizing... 12s
+2025-06-05 10:08:28,731 - gui.interface - INFO - Network stabilizing... 11s
+2025-06-05 10:08:29,734 - gui.interface - INFO - Network stabilizing... 10s
+2025-06-05 10:08:30,737 - gui.interface - INFO - Network stabilizing... 9s
+2025-06-05 10:08:31,740 - gui.interface - INFO - Network stabilizing... 8s
+2025-06-05 10:08:32,743 - gui.interface - INFO - Network stabilizing... 7s
+2025-06-05 10:08:33,745 - gui.interface - INFO - Network stabilizing... 6s
+2025-06-05 10:08:34,749 - gui.interface - INFO - Network stabilizing... 5s
+2025-06-05 10:08:35,751 - gui.interface - INFO - Network stabilizing... 4s
+2025-06-05 10:08:36,754 - gui.interface - INFO - Network stabilizing... 3s
+2025-06-05 10:08:37,756 - gui.interface - INFO - Network stabilizing... 2s
+2025-06-05 10:08:38,759 - gui.interface - INFO - Network stabilizing... 1s
+2025-06-05 10:08:39,763 - gui.interface - INFO - Network stabilization period completed
+2025-06-05 10:08:39,889 - gui.interface - INFO - Device network connectivity verified
+2025-06-05 10:08:44,891 - gui.interface - INFO - All 3 files processed in 115.1 seconds
+2025-06-05 10:15:29,685 - __main__ - INFO - Test Case Manager (Windows Edition) starting up...
+2025-06-05 10:15:29,721 - gui.interface - INFO - Windows application started by tobie
+2025-06-05 10:15:29,762 - gui.interface - INFO - Error loading history: 'TestDatabase' object has no attribute 'get_recent_history_unique'
+2025-06-05 10:15:33,083 - gui.interface - INFO - File selection cleared
+2025-06-05 10:15:33,085 - gui.interface - INFO - Selected 3 valid files
+2025-06-05 10:15:38,355 - gui.interface - INFO - Testing connection to 192.168.88.1...
+2025-06-05 10:15:38,358 - gui.interface - INFO - Connection attempt 1/3...
+2025-06-05 10:15:38,358 - network.connection - INFO - SSH connection closed
+2025-06-05 10:15:38,358 - network.connection - INFO - Connecting to 192.168.88.1:22 as root
+2025-06-05 10:15:38,376 - paramiko.transport - INFO - Connected (version 2.0, client dropbear)
+2025-06-05 10:15:38,503 - paramiko.transport - INFO - Authentication (password) successful!
+2025-06-05 10:15:38,514 - network.connection - INFO - SSH connection established successfully
+2025-06-05 10:15:38,710 - gui.interface - INFO - All remote paths verified
+2025-06-05 10:15:38,728 - gui.interface - INFO - Connection successful - All systems ready
+2025-06-05 10:15:41,095 - gui.interface - INFO - Establishing SSH connection...
+2025-06-05 10:15:41,108 - gui.interface - INFO - Processing file 1/3: ping.json
+2025-06-05 10:15:41,210 - gui.interface - INFO - Warning: Result file already exists: ping_20250605_100702.json. Will look for newer file.
+2025-06-05 10:15:41,215 - network.connection - INFO - Attempting to upload: C:/Users/tobie/Desktop/APP/testcase_app/test/ping.json -> /root/config\ping.json
+2025-06-05 10:15:41,412 - network.connection - INFO - Directory ensured: /root/config
+2025-06-05 10:15:41,534 - network.connection - INFO - File uploaded via SSH exec: C:/Users/tobie/Desktop/APP/testcase_app/test/ping.json -> /root/config/ping.json
+2025-06-05 10:15:41,539 - gui.interface - INFO - File ping.json uploaded successfully
+2025-06-05 10:15:42,544 - gui.interface - INFO - Waiting for result file in /root/result (timeout: 120s)
+2025-06-05 10:15:42,603 - gui.interface - INFO - Initial file count: 12
+2025-06-05 10:15:42,610 - gui.interface - INFO - Initial newest files: wan_delete_20250603_103633.json, wan_delete_20250605_095733.json, wan_delete_20250605_100808.json
+2025-06-05 10:15:42,769 - gui.interface - INFO - Found 3 files via pattern search
+2025-06-05 10:15:42,774 - gui.interface - INFO - Found result file, waiting 2s for it to stabilize...
+2025-06-05 10:15:45,478 - gui.interface - INFO - New result file created: ping_20250605_100702.json
+2025-06-05 10:15:45,479 - network.connection - INFO - Attempting to download: /root/result/ping_20250605_100702.json -> data/temp/results\ping_20250605_100702.json
+2025-06-05 10:15:45,743 - network.connection - INFO - File downloaded via SSH exec: /root/result/ping_20250605_100702.json -> data\temp\results\ping_20250605_100702.json
+2025-06-05 10:15:45,743 - gui.interface - INFO - Result file ping_20250605_100702.json downloaded successfully
+2025-06-05 10:15:46,773 - gui.interface - INFO - Extracted from filename: service=ping, action=
+2025-06-05 10:15:46,774 - gui.interface - INFO - Converted result: ping. = pass
+2025-06-05 10:15:46,775 - storage.database - INFO - Extracted from filename ping.json: service=ping, action=
+2025-06-05 10:15:46,776 - storage.database - INFO - Total 1 test cases saved for result ID 96
+2025-06-05 10:15:46,783 - gui.interface - INFO - File ping.json processed successfully: Pass
+2025-06-05 10:15:46,785 - gui.interface - INFO - Verifying test ping.json has fully completed...
+2025-06-05 10:15:46,884 - gui.interface - INFO - Warning: Processes related to testing still running on device:
+2025-06-05 10:15:46,884 - gui.interface - INFO -   - 3682 root         0 Z    [uci]
+2025-06-05 10:15:46,885 - gui.interface - INFO -   - 3693 root         0 Z    [uci]
+2025-06-05 10:15:46,886 - gui.interface - INFO - Waiting additional time for processes to complete...
+2025-06-05 10:15:51,888 - gui.interface - INFO - Preparing for next test: wan_create.json
+2025-06-05 10:15:51,889 - gui.interface - INFO - Waiting 5s between tests...
+2025-06-05 10:15:51,890 - gui.interface - INFO - Next test in 5s...
+2025-06-05 10:15:52,891 - gui.interface - INFO - Next test in 4s...
+2025-06-05 10:15:53,893 - gui.interface - INFO - Next test in 3s...
+2025-06-05 10:15:54,894 - gui.interface - INFO - Next test in 2s...
+2025-06-05 10:15:55,895 - gui.interface - INFO - Next test in 1s...
+2025-06-05 10:15:56,897 - gui.interface - INFO - Ready for next test
+2025-06-05 10:15:56,906 - gui.interface - INFO - Processing file 2/3: wan_create.json
+2025-06-05 10:15:57,008 - gui.interface - INFO - Warning: Result file already exists: wan_create_20250605_100715.json. Will look for newer file.
+2025-06-05 10:15:57,011 - network.connection - INFO - Attempting to upload: C:/Users/tobie/Desktop/APP/testcase_app/test/wan_create.json -> /root/config\wan_create.json
+2025-06-05 10:15:57,200 - network.connection - INFO - Directory ensured: /root/config
+2025-06-05 10:15:57,313 - network.connection - INFO - File uploaded via SSH exec: C:/Users/tobie/Desktop/APP/testcase_app/test/wan_create.json -> /root/config/wan_create.json
+2025-06-05 10:15:57,314 - gui.interface - INFO - File wan_create.json uploaded successfully
+2025-06-05 10:15:58,317 - gui.interface - INFO - Network-affecting test detected: wan_create. Using extended timeout and retry policy.
+2025-06-05 10:15:58,318 - gui.interface - INFO - Waiting for result file in /root/result (timeout: 300s)
+2025-06-05 10:16:01,320 - gui.interface - INFO - Connection lost - likely due to network restart on device
+2025-06-05 10:16:09,322 - gui.interface - INFO - [11s] Waiting 2s before reconnection attempt...
+2025-06-05 10:16:11,323 - gui.interface - INFO - Attempting to reconnect (1/12)...
+2025-06-05 10:16:11,325 - network.connection - INFO - SSH connection closed
+2025-06-05 10:16:11,325 - network.connection - INFO - Connecting to 192.168.88.1:22 as root
+2025-06-05 10:16:11,344 - paramiko.transport - INFO - Connected (version 2.0, client dropbear)
+2025-06-05 10:16:11,441 - paramiko.transport - INFO - Authentication (password) successful!
+2025-06-05 10:16:11,464 - network.connection - INFO - SSH connection established successfully
+2025-06-05 10:16:11,465 - gui.interface - INFO - Successfully reconnected!
+2025-06-05 10:16:11,553 - gui.interface - INFO - Found 14 new files after reconnect: wan_delete_20250603_103633.json, ping_20250605_100702.json, ping_20250603_101647.json
+2025-06-05 10:16:11,554 - gui.interface - INFO - Found result file, waiting 2s for it to stabilize...
+2025-06-05 10:16:13,720 - gui.interface - INFO - New result file created: wan_create_20250605_101606.json
+2025-06-05 10:16:13,721 - gui.interface - INFO - Network test: Waiting additional time for configuration changes to apply...
+2025-06-05 10:16:16,722 - network.connection - INFO - Attempting to download: /root/result/wan_create_20250605_101606.json -> data/temp/results\wan_create_20250605_101606.json
+2025-06-05 10:16:16,934 - network.connection - INFO - File downloaded via SSH exec: /root/result/wan_create_20250605_101606.json -> data\temp\results\wan_create_20250605_101606.json
+2025-06-05 10:16:16,936 - gui.interface - INFO - Result file wan_create_20250605_101606.json downloaded successfully
+2025-06-05 10:16:17,964 - gui.interface - INFO - Extracted from filename: service=wan, action=create
+2025-06-05 10:16:17,966 - gui.interface - INFO - Converted result: wan.create = pass
+2025-06-05 10:16:17,967 - storage.database - INFO - Extracted from filename wan_create.json: service=wan, action=create
+2025-06-05 10:16:17,968 - storage.database - INFO - Total 1 test cases saved for result ID 98
+2025-06-05 10:16:17,976 - gui.interface - INFO - File wan_create.json processed successfully: Pass
+2025-06-05 10:16:17,979 - gui.interface - INFO - Verifying test wan_create.json has fully completed...
+2025-06-05 10:16:18,091 - gui.interface - INFO - Warning: Processes related to testing still running on device:
+2025-06-05 10:16:18,093 - gui.interface - INFO -   - 2110 root      1140 S    /bin/sh /lib/wifi/wps-hostapd-update-uci ath1 CTRL-E
+2025-06-05 10:16:18,095 - gui.interface - INFO -   - 2111 root      1140 R    /bin/sh /lib/wifi/wps-hostapd-update-uci ath1 CTRL-E
+2025-06-05 10:16:18,097 - gui.interface - INFO -   - 2788 root      1256 S    /bin/sh /etc/rc.common /etc/init.d/network running
+2025-06-05 10:16:18,099 - gui.interface - INFO - Waiting additional time for processes to complete...
+2025-06-05 10:16:23,101 - gui.interface - INFO - Network test detected: Waiting 15s for configuration to stabilize...
+2025-06-05 10:16:23,103 - gui.interface - INFO - Network stabilizing... 15s
+2025-06-05 10:16:24,106 - gui.interface - INFO - Network stabilizing... 14s
+2025-06-05 10:16:25,109 - gui.interface - INFO - Network stabilizing... 13s
+2025-06-05 10:16:26,112 - gui.interface - INFO - Network stabilizing... 12s
+2025-06-05 10:16:27,115 - gui.interface - INFO - Network stabilizing... 11s
+2025-06-05 10:16:28,119 - gui.interface - INFO - Network stabilizing... 10s
+2025-06-05 10:16:29,121 - gui.interface - INFO - Network stabilizing... 9s
+2025-06-05 10:16:30,123 - gui.interface - INFO - Network stabilizing... 8s
+2025-06-05 10:16:31,125 - gui.interface - INFO - Network stabilizing... 7s
+2025-06-05 10:16:32,129 - gui.interface - INFO - Network stabilizing... 6s
+2025-06-05 10:16:33,132 - gui.interface - INFO - Network stabilizing... 5s
+2025-06-05 10:16:34,135 - gui.interface - INFO - Network stabilizing... 4s
+2025-06-05 10:16:35,137 - gui.interface - INFO - Network stabilizing... 3s
+2025-06-05 10:16:36,140 - gui.interface - INFO - Network stabilizing... 2s
+2025-06-05 10:16:37,149 - gui.interface - INFO - Network stabilizing... 1s
+2025-06-05 10:16:38,152 - gui.interface - INFO - Network stabilization period completed
+2025-06-05 10:16:38,279 - gui.interface - INFO - Device network connectivity verified
+2025-06-05 10:16:43,282 - gui.interface - INFO - Preparing for next test: wan_delete.json
+2025-06-05 10:16:43,284 - gui.interface - INFO - Waiting 5s between tests...
+2025-06-05 10:16:43,286 - gui.interface - INFO - Next test in 5s...
+2025-06-05 10:16:44,289 - gui.interface - INFO - Next test in 4s...
+2025-06-05 10:16:45,291 - gui.interface - INFO - Next test in 3s...
+2025-06-05 10:16:46,294 - gui.interface - INFO - Next test in 2s...
+2025-06-05 10:16:47,296 - gui.interface - INFO - Next test in 1s...
+2025-06-05 10:16:48,299 - gui.interface - INFO - Ready for next test
+2025-06-05 10:16:48,309 - gui.interface - INFO - Processing file 3/3: wan_delete.json
+2025-06-05 10:16:48,409 - gui.interface - INFO - Warning: Result file already exists: wan_delete_20250605_100808.json. Will look for newer file.
+2025-06-05 10:16:48,411 - network.connection - INFO - Attempting to upload: C:/Users/tobie/Desktop/APP/testcase_app/test/wan_delete.json -> /root/config\wan_delete.json
+2025-06-05 10:16:48,602 - network.connection - INFO - Directory ensured: /root/config
+2025-06-05 10:16:48,710 - network.connection - INFO - File uploaded via SSH exec: C:/Users/tobie/Desktop/APP/testcase_app/test/wan_delete.json -> /root/config/wan_delete.json
+2025-06-05 10:16:48,713 - gui.interface - INFO - File wan_delete.json uploaded successfully
+2025-06-05 10:16:49,716 - gui.interface - INFO - Network-affecting test detected: wan_delete. Using extended timeout and retry policy.
+2025-06-05 10:16:49,717 - gui.interface - INFO - Waiting for result file in /root/result (timeout: 300s)
+2025-06-05 10:16:52,821 - gui.interface - INFO - Connection lost - likely due to network restart on device
+2025-06-05 10:16:59,295 - paramiko.transport - WARNING - Success for unrequested channel! [??]
+2025-06-05 10:17:00,824 - gui.interface - INFO - [11s] Waiting 2s before reconnection attempt...
+2025-06-05 10:17:02,827 - gui.interface - INFO - Attempting to reconnect (1/12)...
+2025-06-05 10:17:02,828 - network.connection - INFO - SSH connection closed
+2025-06-05 10:17:02,828 - network.connection - INFO - Connecting to 192.168.88.1:22 as root
+2025-06-05 10:17:02,850 - paramiko.transport - INFO - Connected (version 2.0, client dropbear)
+2025-06-05 10:17:02,938 - paramiko.transport - INFO - Authentication (password) successful!
+2025-06-05 10:17:02,950 - network.connection - INFO - SSH connection established successfully
+2025-06-05 10:17:02,952 - gui.interface - INFO - Successfully reconnected!
+2025-06-05 10:17:03,051 - gui.interface - INFO - Found 15 new files after reconnect: wan_delete_20250603_103633.json, ping_20250605_100702.json, wan_delete_20250605_101659.json
+2025-06-05 10:17:03,052 - gui.interface - INFO - Found result file, waiting 2s for it to stabilize...
+2025-06-05 10:17:05,222 - gui.interface - INFO - New result file created: wan_delete_20250605_101659.json
+2025-06-05 10:17:05,223 - gui.interface - INFO - Network test: Waiting additional time for configuration changes to apply...
+2025-06-05 10:17:08,224 - network.connection - INFO - Attempting to download: /root/result/wan_delete_20250605_101659.json -> data/temp/results\wan_delete_20250605_101659.json
+2025-06-05 10:17:08,465 - network.connection - INFO - File downloaded via SSH exec: /root/result/wan_delete_20250605_101659.json -> data\temp\results\wan_delete_20250605_101659.json
+2025-06-05 10:17:08,466 - gui.interface - INFO - Result file wan_delete_20250605_101659.json downloaded successfully
+2025-06-05 10:17:09,485 - gui.interface - INFO - Extracted from filename: service=wan, action=delete
+2025-06-05 10:17:09,487 - gui.interface - INFO - Converted result: wan.delete = pass
+2025-06-05 10:17:09,488 - storage.database - INFO - Extracted from filename wan_delete.json: service=wan, action=delete
+2025-06-05 10:17:09,488 - storage.database - INFO - Total 1 test cases saved for result ID 100
+2025-06-05 10:17:09,496 - gui.interface - INFO - File wan_delete.json processed successfully: Pass
+2025-06-05 10:17:09,498 - gui.interface - INFO - Verifying test wan_delete.json has fully completed...
+2025-06-05 10:17:09,579 - gui.interface - INFO - Warning: Processes related to testing still running on device:
+2025-06-05 10:17:09,581 - gui.interface - INFO -   - 1164 root      1256 S    /bin/sh /etc/rc.common /etc/init.d/network running
+2025-06-05 10:17:09,584 - gui.interface - INFO -   - 3115 root         0 Z    [uci]
+2025-06-05 10:17:09,585 - gui.interface - INFO -   - 3128 root         0 Z    [uci]
+2025-06-05 10:17:09,588 - gui.interface - INFO - Waiting additional time for processes to complete...
+2025-06-05 10:17:14,591 - gui.interface - INFO - Network test detected: Waiting 15s for configuration to stabilize...
+2025-06-05 10:17:14,592 - gui.interface - INFO - Network stabilizing... 15s
+2025-06-05 10:17:15,596 - gui.interface - INFO - Network stabilizing... 14s
+2025-06-05 10:17:16,599 - gui.interface - INFO - Network stabilizing... 13s
+2025-06-05 10:17:17,601 - gui.interface - INFO - Network stabilizing... 12s
+2025-06-05 10:17:18,604 - gui.interface - INFO - Network stabilizing... 11s
+2025-06-05 10:17:19,607 - gui.interface - INFO - Network stabilizing... 10s
+2025-06-05 10:17:20,609 - gui.interface - INFO - Network stabilizing... 9s
+2025-06-05 10:17:21,612 - gui.interface - INFO - Network stabilizing... 8s
+2025-06-05 10:17:22,616 - gui.interface - INFO - Network stabilizing... 7s
+2025-06-05 10:17:23,619 - gui.interface - INFO - Network stabilizing... 6s
+2025-06-05 10:17:24,621 - gui.interface - INFO - Network stabilizing... 5s
+2025-06-05 10:17:25,624 - gui.interface - INFO - Network stabilizing... 4s
+2025-06-05 10:17:26,627 - gui.interface - INFO - Network stabilizing... 3s
+2025-06-05 10:17:27,629 - gui.interface - INFO - Network stabilizing... 2s
+2025-06-05 10:17:28,632 - gui.interface - INFO - Network stabilizing... 1s
+2025-06-05 10:17:29,643 - gui.interface - INFO - Network stabilization period completed
+2025-06-05 10:17:29,774 - gui.interface - INFO - Device network connectivity verified
+2025-06-05 10:17:34,776 - gui.interface - INFO - All 3 files processed in 113.7 seconds
+2025-06-05 10:17:34,782 - gui.interface - INFO - Error loading history: 'TestDatabase' object has no attribute 'get_recent_history_unique'
+2025-06-05 10:17:40,693 - gui.interface - INFO - Applying history filter: Date=All, Status=All
+2025-06-05 10:17:40,696 - gui.interface - INFO - Applied filter: 100 records found
+2025-06-05 10:17:42,030 - gui.interface - INFO - Applying history filter: Date=All, Status=All
+2025-06-05 10:17:42,034 - gui.interface - INFO - Applied filter: 100 records found
+2025-06-05 10:18:33,662 - __main__ - INFO - Test Case Manager (Windows Edition) starting up...
+2025-06-05 10:18:33,703 - gui.interface - INFO - Windows application started by tobie
+2025-06-05 10:18:33,746 - gui.interface - INFO - Error loading history: 'TestDatabase' object has no attribute 'get_recent_history_unique'
+2025-06-05 10:18:36,198 - gui.interface - INFO - Applying history filter: Date=All, Status=All
+2025-06-05 10:18:36,205 - gui.interface - INFO - Applied filter: 100 records found
+2025-06-05 10:18:37,962 - gui.interface - INFO - Applying history filter: Date=All, Status=Pass
+2025-06-05 10:18:37,966 - gui.interface - INFO - Applied filter: 80 records found
+2025-06-05 10:18:39,777 - gui.interface - INFO - Applying history filter: Date=All, Status=Fail
+2025-06-05 10:18:39,781 - gui.interface - INFO - Applied filter: 13 records found
+2025-06-05 10:18:42,492 - gui.interface - INFO - Applying history filter: Date=All, Status=Partial
+2025-06-05 10:18:42,495 - gui.interface - INFO - Applied filter: 7 records found
+2025-06-05 10:18:51,389 - gui.interface - INFO - Testing connection to 192.168.88.1...
+2025-06-05 10:18:51,392 - gui.interface - INFO - Connection attempt 1/3...
+2025-06-05 10:18:51,392 - network.connection - INFO - SSH connection closed
+2025-06-05 10:18:51,392 - network.connection - INFO - Connecting to 192.168.88.1:22 as root
+2025-06-05 10:18:51,415 - paramiko.transport - INFO - Connected (version 2.0, client dropbear)
+2025-06-05 10:18:51,502 - paramiko.transport - INFO - Authentication (password) successful!
+2025-06-05 10:18:51,517 - network.connection - INFO - SSH connection established successfully
+2025-06-05 10:18:51,714 - gui.interface - INFO - All remote paths verified
+2025-06-05 10:18:51,733 - gui.interface - INFO - Connection successful - All systems ready
+2025-06-05 10:18:55,114 - gui.interface - INFO - File selection cleared
+2025-06-05 10:18:55,116 - gui.interface - INFO - Selected 3 valid files
+2025-06-05 10:19:02,911 - gui.interface - INFO - File selection cleared
+2025-06-05 10:19:02,914 - gui.interface - INFO - Selected 2 valid files
+2025-06-05 10:19:05,603 - gui.interface - INFO - Establishing SSH connection...
+2025-06-05 10:19:05,618 - gui.interface - INFO - Processing file 1/2: wan_create.json
+2025-06-05 10:19:05,732 - gui.interface - INFO - Warning: Result file already exists: wan_create_20250605_101606.json. Will look for newer file.
+2025-06-05 10:19:05,737 - network.connection - INFO - Attempting to upload: C:/Users/tobie/Desktop/APP/testcase_app/test/wan_create.json -> /root/config\wan_create.json
+2025-06-05 10:19:05,925 - network.connection - INFO - Directory ensured: /root/config
+2025-06-05 10:19:06,034 - network.connection - INFO - File uploaded via SSH exec: C:/Users/tobie/Desktop/APP/testcase_app/test/wan_create.json -> /root/config/wan_create.json
+2025-06-05 10:19:06,038 - gui.interface - INFO - File wan_create.json uploaded successfully
+2025-06-05 10:19:07,044 - gui.interface - INFO - Network-affecting test detected: wan_create. Using extended timeout and retry policy.
+2025-06-05 10:19:07,047 - gui.interface - INFO - Waiting for result file in /root/result (timeout: 300s)
+2025-06-05 10:19:10,147 - gui.interface - INFO - Connection lost - likely due to network restart on device
+2025-06-05 10:19:16,633 - paramiko.transport - WARNING - Success for unrequested channel! [??]
+2025-06-05 10:19:18,150 - gui.interface - INFO - [11s] Waiting 2s before reconnection attempt...
+2025-06-05 10:19:20,151 - gui.interface - INFO - Attempting to reconnect (1/12)...
+2025-06-05 10:19:20,152 - network.connection - INFO - SSH connection closed
+2025-06-05 10:19:20,152 - network.connection - INFO - Connecting to 192.168.88.1:22 as root
+2025-06-05 10:19:20,166 - paramiko.transport - INFO - Connected (version 2.0, client dropbear)
+2025-06-05 10:19:20,254 - paramiko.transport - INFO - Authentication (password) successful!
+2025-06-05 10:19:20,264 - network.connection - INFO - SSH connection established successfully
+2025-06-05 10:19:20,265 - gui.interface - INFO - Successfully reconnected!
+2025-06-05 10:19:20,365 - gui.interface - INFO - Found 16 new files after reconnect: ping_20250603_101647.json, wan_delete_20250603_101803.json, ping_20250603_103529.json
+2025-06-05 10:19:20,365 - gui.interface - INFO - Found result file, waiting 2s for it to stabilize...
+2025-06-05 10:19:22,550 - gui.interface - INFO - New result file created: wan_create_20250605_101915.json
+2025-06-05 10:19:22,551 - gui.interface - INFO - Network test: Waiting additional time for configuration changes to apply...
+2025-06-05 10:19:25,552 - network.connection - INFO - Attempting to download: /root/result/wan_create_20250605_101915.json -> data/temp/results\wan_create_20250605_101915.json
+2025-06-05 10:19:25,782 - network.connection - INFO - File downloaded via SSH exec: /root/result/wan_create_20250605_101915.json -> data\temp\results\wan_create_20250605_101915.json
+2025-06-05 10:19:25,782 - gui.interface - INFO - Result file wan_create_20250605_101915.json downloaded successfully
+2025-06-05 10:19:26,783 - gui.interface - INFO - Extracted from filename: service=wan, action=create
+2025-06-05 10:19:26,783 - gui.interface - INFO - Converted result: wan.create = pass
+2025-06-05 10:19:26,784 - gui.interface - INFO - File wan_create.json processed successfully: Pass
+2025-06-05 10:19:26,784 - gui.interface - INFO - Verifying test wan_create.json has fully completed...
+2025-06-05 10:19:26,892 - gui.interface - INFO - Warning: Processes related to testing still running on device:
+2025-06-05 10:19:26,892 - gui.interface - INFO -   - 1428 root         0 Z    [uci]
+2025-06-05 10:19:26,892 - gui.interface - INFO -   - 1439 root         0 Z    [uci]
+2025-06-05 10:19:26,893 - gui.interface - INFO -   - 4014 root      1256 S    /bin/sh /etc/rc.common /etc/init.d/network running
+2025-06-05 10:19:26,893 - gui.interface - INFO - Waiting additional time for processes to complete...
+2025-06-05 10:19:31,894 - gui.interface - INFO - Network test detected: Waiting 15s for configuration to stabilize...
+2025-06-05 10:19:31,894 - gui.interface - INFO - Network stabilizing... 15s
+2025-06-05 10:19:32,895 - gui.interface - INFO - Network stabilizing... 14s
+2025-06-05 10:19:33,897 - gui.interface - INFO - Network stabilizing... 13s
+2025-06-05 10:19:34,739 - gui.interface - INFO - Applying history filter: Date=All, Status=All
+2025-06-05 10:19:34,742 - gui.interface - INFO - Applied filter: 100 records found
+2025-06-05 10:19:34,900 - gui.interface - INFO - Network stabilizing... 12s
+2025-06-05 10:19:35,902 - gui.interface - INFO - Network stabilizing... 11s
+2025-06-05 10:19:36,905 - gui.interface - INFO - Network stabilizing... 10s
+2025-06-05 10:19:37,907 - gui.interface - INFO - Network stabilizing... 9s
+2025-06-05 10:19:38,910 - gui.interface - INFO - Network stabilizing... 8s
+2025-06-05 10:19:39,912 - gui.interface - INFO - Network stabilizing... 7s
+2025-06-05 10:19:40,914 - gui.interface - INFO - Network stabilizing... 6s
+2025-06-05 10:19:41,915 - gui.interface - INFO - Network stabilizing... 5s
+2025-06-05 10:19:42,918 - gui.interface - INFO - Network stabilizing... 4s
+2025-06-05 10:19:43,926 - gui.interface - INFO - Network stabilizing... 3s
+2025-06-05 10:19:44,929 - gui.interface - INFO - Network stabilizing... 2s
+2025-06-05 10:19:45,932 - gui.interface - INFO - Network stabilizing... 1s
+2025-06-05 10:19:46,935 - gui.interface - INFO - Network stabilization period completed
+2025-06-05 10:19:47,088 - gui.interface - INFO - Device network connectivity verified
+2025-06-05 10:19:52,109 - storage.database - INFO - Extracted from filename wan_create.json: service=wan, action=create
+2025-06-05 10:19:52,110 - storage.database - INFO - Total 1 test cases saved for result ID 102
+2025-06-05 10:19:52,117 - gui.interface - INFO - Preparing for next test: wan_delete.json
+2025-06-05 10:19:52,119 - gui.interface - INFO - Waiting 5s between tests...
+2025-06-05 10:19:52,120 - gui.interface - INFO - Next test in 5s...
+2025-06-05 10:19:53,123 - gui.interface - INFO - Next test in 4s...
+2025-06-05 10:19:54,126 - gui.interface - INFO - Next test in 3s...
+2025-06-05 10:19:55,130 - gui.interface - INFO - Next test in 2s...
+2025-06-05 10:19:56,131 - gui.interface - INFO - Next test in 1s...
+2025-06-05 10:19:57,134 - gui.interface - INFO - Ready for next test
+2025-06-05 10:19:57,145 - gui.interface - INFO - Processing file 2/2: wan_delete.json
+2025-06-05 10:19:57,252 - gui.interface - INFO - Warning: Result file already exists: wan_delete_20250605_101659.json. Will look for newer file.
+2025-06-05 10:19:57,258 - network.connection - INFO - Attempting to upload: C:/Users/tobie/Desktop/APP/testcase_app/test/wan_delete.json -> /root/config\wan_delete.json
+2025-06-05 10:19:57,446 - network.connection - INFO - Directory ensured: /root/config
+2025-06-05 10:19:57,553 - network.connection - INFO - File uploaded via SSH exec: C:/Users/tobie/Desktop/APP/testcase_app/test/wan_delete.json -> /root/config/wan_delete.json
+2025-06-05 10:19:57,555 - gui.interface - INFO - File wan_delete.json uploaded successfully
+2025-06-05 10:19:58,558 - gui.interface - INFO - Network-affecting test detected: wan_delete. Using extended timeout and retry policy.
+2025-06-05 10:19:58,559 - gui.interface - INFO - Waiting for result file in /root/result (timeout: 300s)
+2025-06-05 10:20:01,662 - gui.interface - INFO - Connection lost - likely due to network restart on device
+2025-06-05 10:20:08,197 - paramiko.transport - WARNING - Success for unrequested channel! [??]
+2025-06-05 10:20:09,666 - gui.interface - INFO - [11s] Waiting 2s before reconnection attempt...
+2025-06-05 10:20:11,668 - gui.interface - INFO - Attempting to reconnect (1/12)...
+2025-06-05 10:20:11,669 - network.connection - INFO - SSH connection closed
+2025-06-05 10:20:11,670 - network.connection - INFO - Connecting to 192.168.88.1:22 as root
+2025-06-05 10:20:11,684 - paramiko.transport - INFO - Connected (version 2.0, client dropbear)
+2025-06-05 10:20:11,762 - paramiko.transport - INFO - Authentication (password) successful!
+2025-06-05 10:20:11,780 - network.connection - INFO - SSH connection established successfully
+2025-06-05 10:20:11,781 - gui.interface - INFO - Successfully reconnected!
+2025-06-05 10:20:11,878 - gui.interface - INFO - Found 17 new files after reconnect: ping_20250603_101647.json, wan_delete_20250603_101803.json, ping_20250603_103529.json
+2025-06-05 10:20:11,880 - gui.interface - INFO - Found result file, waiting 2s for it to stabilize...
+2025-06-05 10:20:14,053 - gui.interface - INFO - New result file created: wan_delete_20250605_102006.json
+2025-06-05 10:20:14,054 - gui.interface - INFO - Network test: Waiting additional time for configuration changes to apply...
+2025-06-05 10:20:17,055 - network.connection - INFO - Attempting to download: /root/result/wan_delete_20250605_102006.json -> data/temp/results\wan_delete_20250605_102006.json
+2025-06-05 10:20:17,271 - network.connection - INFO - File downloaded via SSH exec: /root/result/wan_delete_20250605_102006.json -> data\temp\results\wan_delete_20250605_102006.json
+2025-06-05 10:20:17,273 - gui.interface - INFO - Result file wan_delete_20250605_102006.json downloaded successfully
+2025-06-05 10:20:18,275 - gui.interface - INFO - Extracted from filename: service=wan, action=delete
+2025-06-05 10:20:18,277 - gui.interface - INFO - Converted result: wan.delete = pass
+2025-06-05 10:20:18,280 - gui.interface - INFO - File wan_delete.json processed successfully: Pass
+2025-06-05 10:20:18,281 - gui.interface - INFO - Verifying test wan_delete.json has fully completed...
+2025-06-05 10:20:18,371 - gui.interface - INFO - Warning: Processes related to testing still running on device:
+2025-06-05 10:20:18,379 - gui.interface - INFO -   - 594 root         0 Z    [uci]
+2025-06-05 10:20:18,380 - gui.interface - INFO -   - 617 root         0 Z    [uci]
+2025-06-05 10:20:18,382 - gui.interface - INFO -   - 2339 root      1256 S    /bin/sh /etc/rc.common /etc/init.d/network running
+2025-06-05 10:20:18,384 - gui.interface - INFO - Waiting additional time for processes to complete...
+2025-06-05 10:20:23,386 - gui.interface - INFO - Network test detected: Waiting 15s for configuration to stabilize...
+2025-06-05 10:20:23,388 - gui.interface - INFO - Network stabilizing... 15s
+2025-06-05 10:20:24,391 - gui.interface - INFO - Network stabilizing... 14s
+2025-06-05 10:20:25,394 - gui.interface - INFO - Network stabilizing... 13s
+2025-06-05 10:20:26,397 - gui.interface - INFO - Network stabilizing... 12s
+2025-06-05 10:20:27,400 - gui.interface - INFO - Network stabilizing... 11s
+2025-06-05 10:20:28,404 - gui.interface - INFO - Network stabilizing... 10s
+2025-06-05 10:20:29,408 - gui.interface - INFO - Network stabilizing... 9s
+2025-06-05 10:20:30,413 - gui.interface - INFO - Network stabilizing... 8s
+2025-06-05 10:20:31,415 - gui.interface - INFO - Network stabilizing... 7s
+2025-06-05 10:20:32,417 - gui.interface - INFO - Network stabilizing... 6s
+2025-06-05 10:20:33,420 - gui.interface - INFO - Network stabilizing... 5s
+2025-06-05 10:20:34,423 - gui.interface - INFO - Network stabilizing... 4s
+2025-06-05 10:20:35,427 - gui.interface - INFO - Network stabilizing... 3s
+2025-06-05 10:20:36,430 - gui.interface - INFO - Network stabilizing... 2s
+2025-06-05 10:20:37,433 - gui.interface - INFO - Network stabilizing... 1s
+2025-06-05 10:20:38,465 - gui.interface - INFO - Network stabilization period completed
+2025-06-05 10:20:38,593 - gui.interface - INFO - Device network connectivity verified
+2025-06-05 10:20:43,620 - storage.database - INFO - Extracted from filename wan_delete.json: service=wan, action=delete
+2025-06-05 10:20:43,621 - storage.database - INFO - Total 1 test cases saved for result ID 104
+2025-06-05 10:20:43,629 - gui.interface - INFO - All 2 files processed in 98.0 seconds
+2025-06-05 10:20:43,636 - gui.interface - INFO - Error loading history: 'TestDatabase' object has no attribute 'get_recent_history_unique'
+2025-06-05 10:21:08,542 - gui.interface - INFO - Applying history filter: Date=All, Status=All
+2025-06-05 10:21:08,545 - gui.interface - INFO - Applied filter: 100 records found
+2025-06-05 10:24:03,039 - __main__ - INFO - Test Case Manager (Windows Edition) starting up...
+2025-06-05 10:24:03,076 - gui.interface - INFO - Windows application started by tobie
+2025-06-05 10:24:05,942 - gui.interface - INFO - File selection cleared
+2025-06-05 10:24:05,946 - gui.interface - INFO - Selected 3 valid files
+2025-06-05 10:24:11,397 - gui.interface - INFO - Testing connection to 192.168.88.1...
+2025-06-05 10:24:11,400 - gui.interface - INFO - Connection attempt 1/3...
+2025-06-05 10:24:11,400 - network.connection - INFO - SSH connection closed
+2025-06-05 10:24:11,400 - network.connection - INFO - Connecting to 192.168.88.1:22 as root
+2025-06-05 10:24:11,429 - paramiko.transport - INFO - Connected (version 2.0, client dropbear)
+2025-06-05 10:24:11,510 - paramiko.transport - INFO - Authentication (password) successful!
+2025-06-05 10:24:11,518 - network.connection - INFO - SSH connection established successfully
+2025-06-05 10:24:11,712 - gui.interface - INFO - All remote paths verified
+2025-06-05 10:24:11,734 - gui.interface - INFO - Connection successful - All systems ready
+2025-06-05 10:24:14,028 - gui.interface - INFO - Establishing SSH connection...
+2025-06-05 10:24:14,043 - gui.interface - INFO - Processing file 1/3: ping.json
+2025-06-05 10:24:14,133 - gui.interface - INFO - Warning: Result file already exists: ping_20250605_101553.json. Will look for newer file.
+2025-06-05 10:24:14,134 - network.connection - INFO - Attempting to upload: C:/Users/tobie/Desktop/APP/testcase_app/test/ping.json -> /root/config\ping.json
+2025-06-05 10:24:14,322 - network.connection - INFO - Directory ensured: /root/config
+2025-06-05 10:24:14,418 - network.connection - INFO - File uploaded via SSH exec: C:/Users/tobie/Desktop/APP/testcase_app/test/ping.json -> /root/config/ping.json
+2025-06-05 10:24:14,422 - gui.interface - INFO - File ping.json uploaded successfully
+2025-06-05 10:24:15,426 - gui.interface - INFO - Waiting for result file in /root/result (timeout: 120s)
+2025-06-05 10:24:15,487 - gui.interface - INFO - Initial file count: 17
+2025-06-05 10:24:15,494 - gui.interface - INFO - Initial newest files: wan_delete_20250605_100808.json, wan_delete_20250605_101659.json, wan_delete_20250605_102006.json
+2025-06-05 10:24:15,669 - gui.interface - INFO - Found 3 files via pattern search
+2025-06-05 10:24:15,672 - gui.interface - INFO - Found result file, waiting 2s for it to stabilize...
+2025-06-05 10:24:18,408 - gui.interface - INFO - New result file created: ping_20250605_101553.json
+2025-06-05 10:24:18,408 - network.connection - INFO - Attempting to download: /root/result/ping_20250605_101553.json -> data/temp/results\ping_20250605_101553.json
+2025-06-05 10:24:18,660 - network.connection - INFO - File downloaded via SSH exec: /root/result/ping_20250605_101553.json -> data\temp\results\ping_20250605_101553.json
+2025-06-05 10:24:18,664 - gui.interface - INFO - Result file ping_20250605_101553.json downloaded successfully
+2025-06-05 10:24:19,679 - gui.interface - INFO - Extracted from filename: service=ping, action=
+2025-06-05 10:24:19,682 - gui.interface - INFO - Converted result: ping. = pass
+2025-06-05 10:24:19,683 - storage.database - INFO - Extracted from filename ping.json: service=ping, action=
+2025-06-05 10:24:19,684 - storage.database - INFO - Total 1 test cases saved for result ID 105
+2025-06-05 10:24:19,697 - gui.interface - INFO - File ping.json processed successfully: Pass
+2025-06-05 10:24:19,701 - gui.interface - INFO - Verifying test ping.json has fully completed...
+2025-06-05 10:24:19,789 - gui.interface - INFO - Warning: Processes related to testing still running on device:
+2025-06-05 10:24:19,791 - gui.interface - INFO -   - 2680 root         0 Z    [uci]
+2025-06-05 10:24:19,793 - gui.interface - INFO -   - 2692 root         0 Z    [uci]
+2025-06-05 10:24:19,796 - gui.interface - INFO - Waiting additional time for processes to complete...
+2025-06-05 10:24:24,800 - gui.interface - INFO - Preparing for next test: wan_create.json
+2025-06-05 10:24:24,804 - gui.interface - INFO - Waiting 5s between tests...
+2025-06-05 10:24:24,806 - gui.interface - INFO - Next test in 5s...
+2025-06-05 10:24:25,809 - gui.interface - INFO - Next test in 4s...
+2025-06-05 10:24:26,812 - gui.interface - INFO - Next test in 3s...
+2025-06-05 10:24:27,815 - gui.interface - INFO - Next test in 2s...
+2025-06-05 10:24:28,818 - gui.interface - INFO - Next test in 1s...
+2025-06-05 10:24:29,820 - gui.interface - INFO - Ready for next test
+2025-06-05 10:24:29,834 - gui.interface - INFO - Processing file 2/3: wan_create.json
+2025-06-05 10:24:29,944 - gui.interface - INFO - Warning: Result file already exists: wan_create_20250605_101915.json. Will look for newer file.
+2025-06-05 10:24:29,945 - network.connection - INFO - Attempting to upload: C:/Users/tobie/Desktop/APP/testcase_app/test/wan_create.json -> /root/config\wan_create.json
+2025-06-05 10:24:30,124 - network.connection - INFO - Directory ensured: /root/config
+2025-06-05 10:24:30,234 - network.connection - INFO - File uploaded via SSH exec: C:/Users/tobie/Desktop/APP/testcase_app/test/wan_create.json -> /root/config/wan_create.json
+2025-06-05 10:24:30,238 - gui.interface - INFO - File wan_create.json uploaded successfully
+2025-06-05 10:24:31,244 - gui.interface - INFO - Network-affecting test detected: wan_create. Using extended timeout and retry policy.
+2025-06-05 10:24:31,248 - gui.interface - INFO - Waiting for result file in /root/result (timeout: 300s)
+2025-06-05 10:24:34,258 - gui.interface - INFO - Connection lost - likely due to network restart on device
+2025-06-05 10:24:40,815 - paramiko.transport - WARNING - Success for unrequested channel! [??]
+2025-06-05 10:24:42,276 - gui.interface - INFO - [11s] Waiting 2s before reconnection attempt...
+2025-06-05 10:24:44,280 - gui.interface - INFO - Attempting to reconnect (1/12)...
+2025-06-05 10:24:44,281 - network.connection - INFO - SSH connection closed
+2025-06-05 10:24:44,282 - network.connection - INFO - Connecting to 192.168.88.1:22 as root
+2025-06-05 10:24:44,296 - paramiko.transport - INFO - Connected (version 2.0, client dropbear)
+2025-06-05 10:24:44,445 - paramiko.transport - INFO - Authentication (password) successful!
+2025-06-05 10:24:44,457 - network.connection - INFO - SSH connection established successfully
+2025-06-05 10:24:44,461 - gui.interface - INFO - Successfully reconnected!
+2025-06-05 10:24:44,567 - gui.interface - INFO - Found 19 new files after reconnect: ping_20250603_103529.json, wan_create_20250603_101710.json, wan_delete_20250603_101803.json
+2025-06-05 10:24:44,572 - gui.interface - INFO - Found result file, waiting 2s for it to stabilize...
+2025-06-05 10:24:46,766 - gui.interface - INFO - New result file created: wan_create_20250605_102439.json
+2025-06-05 10:24:46,772 - gui.interface - INFO - Network test: Waiting additional time for configuration changes to apply...
+2025-06-05 10:24:49,772 - network.connection - INFO - Attempting to download: /root/result/wan_create_20250605_102439.json -> data/temp/results\wan_create_20250605_102439.json
+2025-06-05 10:24:49,997 - network.connection - INFO - File downloaded via SSH exec: /root/result/wan_create_20250605_102439.json -> data\temp\results\wan_create_20250605_102439.json
+2025-06-05 10:24:50,004 - gui.interface - INFO - Result file wan_create_20250605_102439.json downloaded successfully
+2025-06-05 10:24:51,019 - gui.interface - INFO - Extracted from filename: service=wan, action=create
+2025-06-05 10:24:51,023 - gui.interface - INFO - Converted result: wan.create = pass
+2025-06-05 10:24:51,023 - storage.database - INFO - Extracted from filename wan_create.json: service=wan, action=create
+2025-06-05 10:24:51,025 - storage.database - INFO - Total 1 test cases saved for result ID 106
+2025-06-05 10:24:51,037 - gui.interface - INFO - File wan_create.json processed successfully: Pass
+2025-06-05 10:24:51,044 - gui.interface - INFO - Verifying test wan_create.json has fully completed...
+2025-06-05 10:24:51,155 - gui.interface - INFO - Warning: Processes related to testing still running on device:
+2025-06-05 10:24:51,162 - gui.interface - INFO -   - 1651 root      1256 S    /bin/sh /etc/rc.common /etc/init.d/network running
+2025-06-05 10:24:51,166 - gui.interface - INFO -   - 2680 root         0 Z    [uci]
+2025-06-05 10:24:51,170 - gui.interface - INFO -   - 2692 root         0 Z    [uci]
+2025-06-05 10:24:51,176 - gui.interface - INFO - Waiting additional time for processes to complete...
+2025-06-05 10:24:56,184 - gui.interface - INFO - Network test detected: Waiting 15s for configuration to stabilize...
+2025-06-05 10:24:56,187 - gui.interface - INFO - Network stabilizing... 15s
+2025-06-05 10:24:57,194 - gui.interface - INFO - Network stabilizing... 14s
+2025-06-05 10:24:58,198 - gui.interface - INFO - Network stabilizing... 13s
+2025-06-05 10:24:59,210 - gui.interface - INFO - Network stabilizing... 12s
+2025-06-05 10:25:00,222 - gui.interface - INFO - Network stabilizing... 11s
+2025-06-05 10:25:01,229 - gui.interface - INFO - Network stabilizing... 10s
+2025-06-05 10:25:02,234 - gui.interface - INFO - Network stabilizing... 9s
+2025-06-05 10:25:03,238 - gui.interface - INFO - Network stabilizing... 8s
+2025-06-05 10:25:04,243 - gui.interface - INFO - Network stabilizing... 7s
+2025-06-05 10:25:05,249 - gui.interface - INFO - Network stabilizing... 6s
+2025-06-05 10:25:06,253 - gui.interface - INFO - Network stabilizing... 5s
+2025-06-05 10:25:07,258 - gui.interface - INFO - Network stabilizing... 4s
+2025-06-05 10:25:08,263 - gui.interface - INFO - Network stabilizing... 3s
+2025-06-05 10:25:09,268 - gui.interface - INFO - Network stabilizing... 2s
+2025-06-05 10:25:10,272 - gui.interface - INFO - Network stabilizing... 1s
+2025-06-05 10:25:11,278 - gui.interface - INFO - Network stabilization period completed
+2025-06-05 10:25:11,407 - gui.interface - INFO - Device network connectivity verified
+2025-06-05 10:25:16,413 - gui.interface - INFO - Preparing for next test: wan_delete.json
+2025-06-05 10:25:16,417 - gui.interface - INFO - Waiting 5s between tests...
+2025-06-05 10:25:16,420 - gui.interface - INFO - Next test in 5s...
+2025-06-05 10:25:17,423 - gui.interface - INFO - Next test in 4s...
+2025-06-05 10:25:18,427 - gui.interface - INFO - Next test in 3s...
+2025-06-05 10:25:19,432 - gui.interface - INFO - Next test in 2s...
+2025-06-05 10:25:20,437 - gui.interface - INFO - Next test in 1s...
+2025-06-05 10:25:21,440 - gui.interface - INFO - Ready for next test
+2025-06-05 10:25:21,454 - gui.interface - INFO - Processing file 3/3: wan_delete.json
+2025-06-05 10:25:21,558 - gui.interface - INFO - Warning: Result file already exists: wan_delete_20250605_102006.json. Will look for newer file.
+2025-06-05 10:25:21,559 - network.connection - INFO - Attempting to upload: C:/Users/tobie/Desktop/APP/testcase_app/test/wan_delete.json -> /root/config\wan_delete.json
+2025-06-05 10:25:21,745 - network.connection - INFO - Directory ensured: /root/config
+2025-06-05 10:25:21,858 - network.connection - INFO - File uploaded via SSH exec: C:/Users/tobie/Desktop/APP/testcase_app/test/wan_delete.json -> /root/config/wan_delete.json
+2025-06-05 10:25:21,862 - gui.interface - INFO - File wan_delete.json uploaded successfully
+2025-06-05 10:25:22,870 - gui.interface - INFO - Network-affecting test detected: wan_delete. Using extended timeout and retry policy.
+2025-06-05 10:25:22,875 - gui.interface - INFO - Waiting for result file in /root/result (timeout: 300s)
+2025-06-05 10:25:25,975 - gui.interface - INFO - Connection lost - likely due to network restart on device
+2025-06-05 10:25:32,440 - paramiko.transport - WARNING - Success for unrequested channel! [??]
+2025-06-05 10:25:33,981 - gui.interface - INFO - [11s] Waiting 2s before reconnection attempt...
+2025-06-05 10:25:35,986 - gui.interface - INFO - Attempting to reconnect (1/12)...
+2025-06-05 10:25:35,987 - network.connection - INFO - SSH connection closed
+2025-06-05 10:25:35,988 - network.connection - INFO - Connecting to 192.168.88.1:22 as root
+2025-06-05 10:25:36,012 - paramiko.transport - INFO - Connected (version 2.0, client dropbear)
+2025-06-05 10:25:36,109 - paramiko.transport - INFO - Authentication (password) successful!
+2025-06-05 10:25:36,148 - network.connection - INFO - SSH connection established successfully
+2025-06-05 10:25:36,153 - gui.interface - INFO - Successfully reconnected!
+2025-06-05 10:25:36,257 - gui.interface - INFO - Found 20 new files after reconnect: ping_20250603_103529.json, wan_create_20250603_101710.json, wan_delete_20250603_101803.json
+2025-06-05 10:25:36,261 - gui.interface - INFO - Found result file, waiting 2s for it to stabilize...
+2025-06-05 10:25:38,447 - gui.interface - INFO - New result file created: wan_delete_20250605_102532.json
+2025-06-05 10:25:38,457 - gui.interface - INFO - Network test: Waiting additional time for configuration changes to apply...
+2025-06-05 10:25:41,458 - network.connection - INFO - Attempting to download: /root/result/wan_delete_20250605_102532.json -> data/temp/results\wan_delete_20250605_102532.json
+2025-06-05 10:25:41,700 - network.connection - INFO - File downloaded via SSH exec: /root/result/wan_delete_20250605_102532.json -> data\temp\results\wan_delete_20250605_102532.json
+2025-06-05 10:25:41,704 - gui.interface - INFO - Result file wan_delete_20250605_102532.json downloaded successfully
+2025-06-05 10:25:42,726 - gui.interface - INFO - Extracted from filename: service=wan, action=delete
+2025-06-05 10:25:42,729 - gui.interface - INFO - Converted result: wan.delete = pass
+2025-06-05 10:25:42,729 - storage.database - INFO - Extracted from filename wan_delete.json: service=wan, action=delete
+2025-06-05 10:25:42,731 - storage.database - INFO - Total 1 test cases saved for result ID 107
+2025-06-05 10:25:42,741 - gui.interface - INFO - File wan_delete.json processed successfully: Pass
+2025-06-05 10:25:42,744 - gui.interface - INFO - Verifying test wan_delete.json has fully completed...
+2025-06-05 10:25:42,874 - gui.interface - INFO - Warning: Processes related to testing still running on device:
+2025-06-05 10:25:42,876 - gui.interface - INFO -   - 2058 root         0 Z    [uci]
+2025-06-05 10:25:42,878 - gui.interface - INFO -   - 2069 root         0 Z    [uci]
+2025-06-05 10:25:42,882 - gui.interface - INFO -   - 3928 root      1256 S    /bin/sh /etc/rc.common /etc/init.d/network running
+2025-06-05 10:25:42,885 - gui.interface - INFO - Waiting additional time for processes to complete...
+2025-06-05 10:25:47,886 - gui.interface - INFO - Network test detected: Waiting 15s for configuration to stabilize...
+2025-06-05 10:25:47,887 - gui.interface - INFO - Network stabilizing... 15s
+2025-06-05 10:25:48,889 - gui.interface - INFO - Network stabilizing... 14s
+2025-06-05 10:25:49,890 - gui.interface - INFO - Network stabilizing... 13s
+2025-06-05 10:25:50,892 - gui.interface - INFO - Network stabilizing... 12s
+2025-06-05 10:25:51,894 - gui.interface - INFO - Network stabilizing... 11s
+2025-06-05 10:25:52,896 - gui.interface - INFO - Network stabilizing... 10s
+2025-06-05 10:25:53,898 - gui.interface - INFO - Network stabilizing... 9s
+2025-06-05 10:25:54,901 - gui.interface - INFO - Network stabilizing... 8s
+2025-06-05 10:25:55,903 - gui.interface - INFO - Network stabilizing... 7s
+2025-06-05 10:25:56,905 - gui.interface - INFO - Network stabilizing... 6s
+2025-06-05 10:25:57,908 - gui.interface - INFO - Network stabilizing... 5s
+2025-06-05 10:25:58,911 - gui.interface - INFO - Network stabilizing... 4s
+2025-06-05 10:25:59,914 - gui.interface - INFO - Network stabilizing... 3s
+2025-06-05 10:26:00,918 - gui.interface - INFO - Network stabilizing... 2s
+2025-06-05 10:26:01,920 - gui.interface - INFO - Network stabilizing... 1s
+2025-06-05 10:26:02,924 - gui.interface - INFO - Network stabilization period completed
+2025-06-05 10:26:03,056 - gui.interface - INFO - Device network connectivity verified
+2025-06-05 10:26:08,058 - gui.interface - INFO - All 3 files processed in 114.0 seconds
+2025-06-05 10:35:16,860 - network.connection - INFO - SSH connection closed
+2025-06-05 10:35:16,860 - gui.interface - INFO - Application closed normally by tobie
+2025-06-05 10:54:06,012 - __main__ - INFO - Test Case Manager (Windows Edition) starting up...
+2025-06-05 10:54:06,061 - gui.config - INFO - Windows application started by tobie
+2025-06-05 10:54:06,064 - root - ERROR - Failed to start application: 'ApplicationGUI' object has no attribute 'result_handler'
+2025-06-05 10:57:47,663 - __main__ - INFO - Test Case Manager (Windows Edition) starting up...
+2025-06-05 10:57:47,704 - gui.config - INFO - Windows application started by tobie
+2025-06-05 10:57:47,707 - root - ERROR - Failed to start application: 'ApplicationGUI' object has no attribute 'result_handler'
+2025-06-05 10:57:52,340 - __main__ - INFO - Test Case Manager (Windows Edition) starting up...
+2025-06-05 10:57:52,380 - gui.config - INFO - Windows application started by tobie
+2025-06-05 10:57:52,382 - root - ERROR - Failed to start application: 'ApplicationGUI' object has no attribute 'result_handler'
+2025-06-05 10:58:40,573 - __main__ - INFO - Test Case Manager (Windows Edition) starting up...
+2025-06-05 10:58:40,609 - gui.config - INFO - Windows application started by tobie
+2025-06-05 10:58:40,612 - gui.config - INFO - All handlers initialized successfully
+2025-06-05 10:58:51,293 - gui.config - INFO - Testing connection to 192.168.88.1...
+2025-06-05 10:58:51,296 - gui.config - INFO - Connection attempt 1/3...
+2025-06-05 10:58:51,297 - network.connection - INFO - SSH connection closed
+2025-06-05 10:58:51,297 - network.connection - INFO - Connecting to 192.168.88.1:22 as root
+2025-06-05 10:58:51,314 - paramiko.transport - INFO - Connected (version 2.0, client dropbear)
+2025-06-05 10:58:51,442 - paramiko.transport - INFO - Authentication (password) successful!
+2025-06-05 10:58:51,452 - network.connection - INFO - SSH connection established successfully
+2025-06-05 10:58:51,647 - gui.config - INFO - All remote paths verified
+2025-06-05 10:58:51,658 - gui.config - INFO - Connection successful - All systems ready
+2025-06-05 10:58:55,599 - gui.config - INFO - File selection cleared
+2025-06-05 10:58:55,602 - gui.config - INFO - Selected 2 valid files
+2025-06-05 10:59:01,248 - gui.config - INFO - Establishing SSH connection...
+2025-06-05 10:59:01,262 - gui.config - INFO - Processing file 1/2: wan_create.json
+2025-06-05 10:59:01,264 - network.connection - INFO - Attempting to upload: C:/Users/tobie/Desktop/APP/testcase_app/test/wan_create.json -> /root/config\wan_create.json
+2025-06-05 10:59:01,472 - network.connection - INFO - Directory ensured: /root/config
+2025-06-05 10:59:01,583 - network.connection - INFO - File uploaded via SSH exec: C:/Users/tobie/Desktop/APP/testcase_app/test/wan_create.json -> /root/config/wan_create.json
+2025-06-05 10:59:01,587 - gui.config - INFO - File wan_create.json uploaded successfully
+2025-06-05 10:59:02,591 - gui.config - INFO - Waiting for result file in /root/result (timeout: 120s)
+2025-06-05 10:59:12,184 - paramiko.transport - WARNING - Success for unrequested channel! [??]
+2025-06-05 10:59:17,690 - gui.config - INFO - [15s] Still waiting for result file...
+2025-06-05 10:59:32,692 - gui.config - INFO - [30s] Still waiting for result file...
+2025-06-05 10:59:47,693 - gui.config - INFO - [45s] Still waiting for result file...
+2025-06-05 11:00:02,696 - gui.config - INFO - [60s] Still waiting for result file...
+2025-06-05 11:00:17,698 - gui.config - INFO - [75s] Still waiting for result file...
+2025-06-05 11:00:32,700 - gui.config - INFO - [90s] Still waiting for result file...
+2025-06-05 11:00:47,705 - gui.config - INFO - [105s] Still waiting for result file...

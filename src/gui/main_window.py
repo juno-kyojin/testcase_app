@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
-# Module: interface.py  
+# Module: main_window.py
 # Purpose: Main GUI window for Test Case Manager (Windows Edition) - Refactored
 # Last updated: 2025-06-02 by juno-kyojin
 
@@ -16,7 +16,6 @@ import datetime
 import logging
 import sqlite3
 import csv
-import platform
 from typing import Optional, Tuple, List, Dict
 
 # Import các module windows-specific
@@ -47,16 +46,20 @@ class ApplicationGUI:
         self.file_manager = TestFileManager()
         self.database = TestDatabase()
         
-        # Setup variables and state first
+        # Initialize handlers
+        self.connection_handler = ConnectionHandler(self)
+        self.file_processor = FileProcessor(self)
+        self.result_handler = ResultHandler(self)
+        self.ui_components = UIComponents(self)
+        self.utils = GUIUtils(self)
+        
+        # Setup variables and state
         self.setup_variables()
         self.selected_files = []
         self.file_data = {}
         self.current_file_index = -1
         self.processing = False
         self.file_retry_count = {}
-        
-        # Initialize handlers after all basic attributes are set
-        self._initialize_handlers()
         
         # Create UI components
         self.create_menu()
@@ -77,22 +80,6 @@ class ApplicationGUI:
         # Handle window closing
         self.root.protocol("WM_DELETE_WINDOW", self.on_closing)
     
-    def _initialize_handlers(self):
-        """Initialize all handler modules in the correct order"""
-        try:
-            # Initialize handlers step by step to avoid circular dependencies
-            self.result_handler = ResultHandler(self)
-            self.connection_handler = ConnectionHandler(self)
-            self.file_processor = FileProcessor(self)
-            self.ui_components = UIComponents(self)
-            self.utils = GUIUtils(self)
-            
-            self.logger.info("All handlers initialized successfully")
-            
-        except Exception as e:
-            self.logger.error(f"Failed to initialize handlers: {e}")
-            raise
-    
     def setup_variables(self):
         """Setup and load variables from database"""
         self.lan_ip_var = tk.StringVar(value=self.database.get_setting("lan_ip", "192.168.88.1"))
@@ -102,8 +89,6 @@ class ApplicationGUI:
         self.config_path_var = tk.StringVar(value=self.database.get_setting("config_path", "/root/config"))
         self.result_path_var = tk.StringVar(value=self.database.get_setting("result_path", "/root/result"))
         self.connection_status = tk.StringVar(value="Not Connected")
-        self.progress_var = tk.IntVar()
-        self.time_var = tk.StringVar()
     
     def setup_auto_save(self):
         """Setup auto-save for settings when they change"""
@@ -128,6 +113,7 @@ class ApplicationGUI:
                 self.utils.cleanup_temp_files()
             except Exception as e:
                 self.logger.warning(f"Cleanup task failed: {e}")
+            
             self.root.after(3600000, cleanup_task)  # 1 hour
         
         self.root.after(300000, cleanup_task)  # Start after 5 minutes
@@ -172,9 +158,8 @@ class ApplicationGUI:
         timestamp = time.strftime("%Y-%m-%d %H:%M:%S")
         log_entry = f"[{timestamp}] {message}\n"
         
-        if hasattr(self, 'log_text'):
-            self.log_text.insert(tk.END, log_entry)
-            self.log_text.see(tk.END)
+        self.log_text.insert(tk.END, log_entry)
+        self.log_text.see(tk.END)
         self.logger.info(message)
     
     def validate_connection_fields(self) -> bool:
